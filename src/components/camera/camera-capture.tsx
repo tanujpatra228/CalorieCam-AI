@@ -1,26 +1,34 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { analyzeImage } from '@/lib/ai-service'
+import { CameraIcon, X } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
 import { AnalysisResult } from './analysis-result'
+import { Input } from '../ui/input'
+import { Textarea } from '../ui/textarea'
 
 export function CameraCapture() {
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [stream, setStream] = useState<MediaStream | null>(null)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
+	const [userText, setUserText] = useState<string>('')
 	const [isAnalyzing, setIsAnalyzing] = useState(false)
 	const [analysisResult, setAnalysisResult] = useState<string | null>(null)
+	const [isFullScreen, setisFullScreen] = useState<boolean>(false)
 	const { toast } = useToast()
+
+	const isCameraOpen = isFullScreen && stream;
 
 	const startCamera = useCallback(async () => {
 		try {
 			const mediaStream = await navigator.mediaDevices.getUserMedia({
 				video: { facingMode: 'environment' }
 			})
-			setStream(mediaStream)
+			setStream(mediaStream);
+			setisFullScreen(true);
 			if (videoRef.current) {
 				videoRef.current.srcObject = mediaStream
 			}
@@ -37,6 +45,7 @@ export function CameraCapture() {
 		if (stream) {
 			stream.getTracks().forEach(track => track.stop())
 			setStream(null)
+			setisFullScreen(true);
 		}
 	}, [stream])
 
@@ -84,7 +93,7 @@ export function CameraCapture() {
 
 		setIsAnalyzing(true)
 		try {
-			const result = await analyzeImage(capturedImage)
+			const result = await analyzeImage(capturedImage, userText)
 			setAnalysisResult(result)
 		} catch (error) {
 			toast({
@@ -100,6 +109,7 @@ export function CameraCapture() {
 	const handleRetake = () => {
 		setCapturedImage(null)
 		setAnalysisResult(null)
+		setisFullScreen(true)
 		if (fileInputRef.current) {
 			fileInputRef.current.value = ''
 		}
@@ -120,40 +130,53 @@ export function CameraCapture() {
 
 	return (
 		<div className="flex flex-col items-center gap-4">
-			<div className="relative w-full max-w-2xl aspect-video bg-black rounded-lg overflow-hidden">
-				<video
-					ref={videoRef}
-					autoPlay
-					playsInline
-					className="w-full h-full object-cover"
-				/>
-				<div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-					{!stream && (
-						<div className="flex justify-center items-center gap-4">
-							<Button onClick={startCamera}>Start Camera</Button>
-							<div className="relative">
-								<input
-									ref={fileInputRef}
-									type="file"
-									accept="image/*"
-									onChange={handleFileSelect}
-									className="hidden"
-									id="image-upload"
-								/>
-								<Button
-									variant="outline"
-									onClick={() => fileInputRef.current?.click()}
-								>
-									Select Image
-								</Button>
-							</div>
+			{
+				!capturedImage && (
+					<div className={`${isCameraOpen ? 'fixed inset-0 h-screen' : 'relative'} w-full max-w-2xl aspect-video bg-black rounded-lg overflow-hidden`}>
+						<video
+							ref={videoRef}
+							autoPlay
+							playsInline
+							className="w-full h-full object-cover"
+						/>
+						<div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+							{!stream && (
+								<div className="flex justify-center items-center gap-4">
+									<Button onClick={startCamera}>Start Camera</Button>
+									<div className="relative">
+										<input
+											ref={fileInputRef}
+											type="file"
+											accept="image/*"
+											onChange={handleFileSelect}
+											className="hidden"
+											id="image-upload"
+										/>
+										<Button
+											variant="outline"
+											onClick={() => fileInputRef.current?.click()}
+										>
+											Select Image
+										</Button>
+									</div>
+								</div>
+							)}
+							{isCameraOpen && (
+								<div className="fixed bottom-0 left-0 right-0">
+									<div className='flex justify-center items-center gap-4 mb-0 p-4'>
+										<Button onClick={stopCamera} variant={'outline'} className='rounded-full px-4 py-7 bg-transparent border-white'>
+											<X />
+										</Button>
+										<Button onClick={captureImage} className='rounded-full px-4 py-7'>
+											<CameraIcon />
+										</Button>
+									</div>
+								</div>
+							)}
 						</div>
-					)}
-					{stream && (
-						<Button onClick={captureImage}>Capture</Button>
-					)}
-				</div>
-			</div>
+					</div>
+				)
+			}
 
 			{capturedImage && !analysisResult && (
 				<div className="flex flex-col items-center gap-4">
@@ -162,6 +185,7 @@ export function CameraCapture() {
 						alt="Captured"
 						className="max-w-2xl w-full rounded-lg"
 					/>
+					<Textarea placeholder={`2 Aalu parotha with curd, Salad (1 Cucumber, 1 Tomatos, 1 Onions, 1tbs Olive Oil)...`} onChange={(e) => setUserText(e.currentTarget.value)} value={userText} />
 					<div className="flex gap-4">
 						<Button
 							variant="outline"

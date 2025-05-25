@@ -17,6 +17,9 @@ REQUIREMENTS:
 – If any component cannot be confidently identified, set its value to 'null' and add a “notes” entry explaining why.
 – Round all numeric values to one decimal place.
 
+Additional User Provided Context:
+{{additionalContext}}
+
 OUTPUT JSON SCHEMA:
 {
   "dish_name":       "string",        // e.g. "Chicken Alfredo Pasta"
