@@ -20,6 +20,7 @@ interface MacroData {
 interface AnalysisData {
 	dish_name: string
 	total_weight_g: number
+	total_digestion_time_m: number
 	macros: MacroData
 	micros: {
 		sodium_mg: number | null
@@ -121,6 +122,7 @@ export function AnalysisResult({
 				<Card className="overflow-hidden">
 					<CardHeader>
 						<CardTitle className='pb-2'>{jsonResult.dish_name}</CardTitle>
+						<span>~{jsonResult.total_digestion_time_m} min</span>
 					</CardHeader>
 					<CardContent>
 						<img
