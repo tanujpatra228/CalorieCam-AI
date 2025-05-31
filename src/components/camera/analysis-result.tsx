@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Bar, BarChart, CartesianGrid, Label, LabelList, Pie, PieChart, XAxis, YAxis } from 'recharts'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { useMemo } from 'react'
+import { useAnalysis } from '@/contexts/analysis-context'
+import { AnalysisData } from '@/types/database'
+import { useRouter } from 'next/navigation'
+import { LogsIcon } from 'lucide-react'
 
 interface MacroData {
 	calories_kcal: number
@@ -15,18 +19,6 @@ interface MacroData {
 	sugars_g: number
 	sat_fat_g: number
 	fiber_g: number
-}
-
-interface AnalysisData {
-	dish_name: string
-	total_weight_g: number
-	total_digestion_time_m: number
-	macros: MacroData
-	micros: {
-		sodium_mg: number | null
-		vitaminC_mg: number | null
-	}
-	notes: string[]
 }
 
 interface AnalysisResultProps {
@@ -69,6 +61,9 @@ export function AnalysisResult({
 	onAnalyze,
 	isAnalyzing
 }: AnalysisResultProps) {
+	const { isLoggedIn, isLogging, logCurrentAnalysis } = useAnalysis();
+	const router = useRouter();
+	
 	const jsonResult = useMemo(() => {
 		try {
 			const cleanJson = result.replace(/^```json\n/, '').replace(/```$/, '')
@@ -78,8 +73,6 @@ export function AnalysisResult({
 			return null
 		}
 	}, [result])
-
-	console.log('jsonResult', jsonResult);
 
 	const chartData = useMemo(() => {
 		if (!jsonResult) return []
@@ -101,10 +94,15 @@ export function AnalysisResult({
 			.filter(([key]) => key !== 'calories_kcal')
 			.map(([key, value]) => ({
 				name: key.replace('_g', '').replace(/_/g, ' '),
-				value: value as number
+				value: value.toFixed(2) as unknown as number
 			}))
 			.sort((a, b) => b.value - a.value)
 	}, [jsonResult])
+
+	const handleLogAnalysis = async () => {
+		if (!jsonResult) return
+		await logCurrentAnalysis(jsonResult, image)
+	}
 
 	if (!jsonResult) {
 		return (
@@ -191,15 +189,15 @@ export function AnalysisResult({
 						<CardFooter className='p-0 flex justify-between items-stretch text-xs'>
 							<span className='flex gap-1 justify-start items-center'>
 								<span className='block h-3 w-3 rounded-full bg-[hsl(var(--protein))]' />
-								Protein {jsonResult.macros.protein_g} g
+								Protein {(jsonResult.macros.protein_g).toFixed(2)} g
 							</span>
 							<span className='flex gap-1 justify-start items-center'>
 								<span className='block h-3 w-3 rounded-full bg-[hsl(var(--fat))]' />
-								Fat {jsonResult.macros.fat_g + jsonResult.macros.sat_fat_g} g
+								Fat {(jsonResult.macros.fat_g + jsonResult.macros.sat_fat_g).toFixed(2)} g
 							</span>
 							<span className='flex gap-1 justify-start items-center'>
 								<span className='block h-3 w-3 rounded-full bg-[hsl(var(--carbs))]' />
-								Carbs {jsonResult.macros.carbs_g} g
+								Carbs {(jsonResult.macros.carbs_g).toFixed(2)} g
 							</span>
 						</CardFooter>
 					</CardContent>
@@ -280,18 +278,40 @@ export function AnalysisResult({
 				</Card>
 			</div>
 
+			
+			<div className="w-full">
+				{isLoggedIn ? (
+					<Button
+						onClick={handleLogAnalysis}
+						disabled={isAnalyzing || isLogging}
+						variant='secondary'
+						className='w-full flex gap-2 bg-green-800 text-white'
+					>
+						<LogsIcon /> {isLogging ? 'Logging...' : 'Log Analysis'}
+					</Button>
+				) : (
+					<Button
+						onClick={() => router.push('/sign-in')}
+						variant='secondary'
+						className='w-full flex gap-2 bg-green-800 text-white'
+					>
+						<LogsIcon />{' '}Sign-in to Log
+					</Button>
+				)
+				}
+			</div>
 			{/* Action Buttons */}
 			<div className="flex gap-4">
 				<Button
 					variant="outline"
 					onClick={onRetake}
-					disabled={isAnalyzing}
+					disabled={isAnalyzing || isLogging}
 				>
 					Retake
 				</Button>
 				<Button
 					onClick={onAnalyze}
-					disabled={isAnalyzing}
+					disabled={isAnalyzing || isLogging}
 				>
 					{isAnalyzing ? 'Analyzing...' : 'Analyze Again'}
 				</Button>
