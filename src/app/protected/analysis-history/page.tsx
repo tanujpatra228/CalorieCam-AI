@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { AnalysisLog } from '@/types/database'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { formatDistanceToNow } from 'date-fns'
+import { format } from 'date-fns'
 
 async function getAnalysisLogs() {
   const supabase = await createClient()
@@ -31,22 +31,22 @@ export default async function AnalysisHistoryPage() {
   const logs = await getAnalysisLogs()
   
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-2">
       <h1 className="text-2xl font-bold mb-6">Analysis History</h1>
       <div className="grid gap-6">
         {logs.map((log) => (
           <Card key={log.id}>
             <CardHeader>
-              <div className="flex justify-between items-start">
+              <div className="">
                 <div>
                   <CardTitle>{log.dish_name}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                    {format(new Date(log.created_at), "MMM d, yyyy 'at' HH:mm")}
                   </p>
                 </div>
                 <div className="text-sm">
                   <p>Weight: {log.total_weight_g}g</p>
-                  <p>Digestion Time: {log.total_digestion_time_m} min</p>
+                  <p>Digestion Time: ~{log.total_digestion_time_m} min</p>
                 </div>
               </div>
             </CardHeader>
@@ -66,7 +66,7 @@ export default async function AnalysisHistoryPage() {
                       <div>Calories: {log.macros.calories_kcal} kcal</div>
                       <div>Protein: {log.macros.protein_g}g</div>
                       <div>Carbs: {log.macros.carbs_g}g</div>
-                      <div>Fat: {log.macros.fat_g + log.macros.sat_fat_g}g</div>
+                      <div>Fat: {(log.macros.fat_g + log.macros.sat_fat_g).toFixed(2)}g</div>
                       <div>Sugars: {log.macros.sugars_g}g</div>
                       <div>Fiber: {log.macros.fiber_g}g</div>
                     </div>
