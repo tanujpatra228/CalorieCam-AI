@@ -17,6 +17,7 @@ export interface AnalysisData {
   dish_name: string
   total_weight_g: number
   total_digestion_time_m: number
+  total_calories_to_digest_kcal: number
   macros: MacroData
   micros: MicroData
   notes: string[]

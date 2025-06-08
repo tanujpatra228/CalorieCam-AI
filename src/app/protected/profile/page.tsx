@@ -174,7 +174,7 @@ export default function ProfilePage() {
                     </div>
                     <Progress 
                       value={profile?.daily_calories_budget ? 
-                        Math.min((profile.daily_calories_budget / 3000) * 100, 100) : 0} 
+                        Math.min((profile.daily_calories_budget / 2000) * 100, 100) : 0} 
                     />
                   </div>
                   <div>

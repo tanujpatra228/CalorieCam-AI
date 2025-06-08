@@ -23,6 +23,7 @@ export async function logAnalysis(
       dish_name: analysisData.dish_name,
       total_weight_g: analysisData.total_weight_g,
       total_digestion_time_m: analysisData.total_digestion_time_m,
+      total_calories_to_digest_kcal: analysisData.total_calories_to_digest_kcal,
       image_url: imageUrl,
       macros: analysisData.macros,
       micros: analysisData.micros,

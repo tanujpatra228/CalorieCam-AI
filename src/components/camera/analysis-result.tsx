@@ -120,7 +120,10 @@ export function AnalysisResult({
 				<Card className="overflow-hidden">
 					<CardHeader>
 						<CardTitle className='pb-2'>{jsonResult.dish_name}</CardTitle>
-						<span>~{jsonResult.total_digestion_time_m} min</span>
+						<div className='flex gap-2'>
+							<span>~{jsonResult.total_digestion_time_m} min</span>
+							{isLoggedIn && jsonResult?.total_calories_to_digest_kcal ? <span>~{jsonResult.total_calories_to_digest_kcal} kcal</span> : null}
+						</div>
 					</CardHeader>
 					<CardContent>
 						<img
