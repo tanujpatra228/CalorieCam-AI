@@ -134,7 +134,7 @@ export default function AnalysisHistoryPage() {
             <CardContent className="p-4 pt-0">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <CaloriesBudgetProgress caloriesIntake={dailyMacros.calories  - (dailyMacros?.calories_to_digest || 0)} />
+                    <CaloriesBudgetProgress caloriesIntake={Math.round(dailyMacros.calories  - (dailyMacros?.calories_to_digest || 0))} />
                 </div>
                 <div className="space-y-2">
                   <ProteinTargetProgress proteinIntake={Math.round(dailyMacros.protein)} />
