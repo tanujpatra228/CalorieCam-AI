@@ -34,7 +34,7 @@ export async function logAnalysis(
     
   if (error) {
     console.error('Error logging analysis:', error)
-    throw new Error('Failed to log analysis')
+    throw new Error('Failed to log analysis: '+error.message)
   }
 
   // Revalidate the analysis history page
