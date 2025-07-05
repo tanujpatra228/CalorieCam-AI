@@ -43,7 +43,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <AnalysisProvider isLoggedIn={!!user}>
-            <main className="min-h-screen flex flex-col items-center">
+            <main className="min-h-screen md:flex md:flex-col md:items-center">
               <div className="">
                 <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                   <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
@@ -51,10 +51,10 @@ export default async function RootLayout({
                       <Link href={"/"}>CalorieCam AI</Link>
                       {user && (
                         <>
-                          <Link href="/protected/analysis-history" className="text-muted-foreground hover:text-foreground">
+                          <Link href="/protected/analysis-history" className="text-muted-foreground hover:text-foreground hidden md:block">
                             History
                           </Link>
-                          <Link href="/protected/profile" className="text-muted-foreground hover:text-foreground">
+                          <Link href="/protected/profile" className="text-muted-foreground hover:text-foreground hidden md:block">
                             Profile
                           </Link>
                         </>

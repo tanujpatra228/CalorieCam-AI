@@ -5,6 +5,13 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/server";
 import { CurrentUserAvatar } from "./current-user-avatar";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from './ui/dropdown-menu'
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -50,14 +57,43 @@ export default async function AuthButton() {
     );
   }
   return user ? (
-    <div className="flex items-center gap-4">
-      <CurrentUserAvatar />
-      <form action={signOutAction}>
-        <Button type="submit" variant={"outline"}>
-          Sign out
-        </Button>
-      </form>
-    </div>
+    <>
+      {/* Desktop: show avatar and sign out button */}
+      <div className="hidden md:flex items-center gap-4">
+        <CurrentUserAvatar />
+        <form action={signOutAction}>
+          <Button type="submit" variant={"outline"}>
+            Sign out
+          </Button>
+        </form>
+      </div>
+      {/* Mobile: show avatar with dropdown */}
+      <div className="md:hidden flex items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <span className="cursor-pointer">
+              <CurrentUserAvatar />
+            </span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/protected/analysis-history">History</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/protected/profile">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <form action={signOutAction}>
+                <button type="submit" className="w-full text-left bg-transparent p-0 m-0 border-0 cursor-pointer">
+                  Sign out
+                </button>
+              </form>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </>
   ) : (
     <div className="flex gap-2">
       <Button asChild size="sm" variant={"outline"}>
