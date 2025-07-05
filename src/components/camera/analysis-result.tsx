@@ -94,7 +94,7 @@ export function AnalysisResult({
 			.filter(([key]) => key !== 'calories_kcal')
 			.map(([key, value]) => ({
 				name: key.replace('_g', '').replace(/_/g, ' '),
-				value: value.toFixed(2) as unknown as number
+				value: typeof value === 'string' ? parseFloat(value) : Number(value)
 			}))
 			.sort((a, b) => b.value - a.value)
 	}, [jsonResult])
@@ -235,7 +235,11 @@ export function AnalysisResult({
 									axisLine={false}
 									className='capitalize'
 								/>
-								<XAxis dataKey="value" type="number" />
+								<XAxis
+									dataKey="value"
+									type="number"
+									domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.1)]}
+								/>
 								<ChartTooltip
 									cursor={false}
 									content={<ChartTooltipContent indicator="line" />}
