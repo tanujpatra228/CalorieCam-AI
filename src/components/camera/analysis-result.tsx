@@ -10,6 +10,7 @@ import { useAnalysis } from '@/contexts/analysis-context'
 import { AnalysisData } from '@/types/database'
 import { useRouter } from 'next/navigation'
 import { LogsIcon } from 'lucide-react'
+import * as Sentry from '@sentry/nextjs'
 
 interface MacroData {
 	calories_kcal: number
@@ -69,6 +70,7 @@ export function AnalysisResult({
 			const cleanJson = result.replace(/^```json\n/, '').replace(/```$/, '')
 			return JSON.parse(cleanJson) as AnalysisData
 		} catch (error) {
+			Sentry.captureException(error)
 			console.error('Failed to parse analysis result:', error)
 			return null
 		}

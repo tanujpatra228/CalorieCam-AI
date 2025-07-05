@@ -1,6 +1,7 @@
 'use server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { IMG_ANALYZE_PROMPT } from './consts'
+import * as Sentry from '@sentry/nextjs'
 
 // Initialize the Google AI client
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
@@ -30,6 +31,7 @@ export async function analyzeImage(imageData: string, additionalContext?: string
 		console.log({response});
 		return response.text()
 	} catch (error) {
+		Sentry.captureException(error)
 		console.error('Error analyzing image:', error)
 		throw new Error('Failed to analyze image')
 	}

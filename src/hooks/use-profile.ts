@@ -3,6 +3,7 @@ import { createClient } from '@/lib/client'
 import { UserProfile } from '@/types/profile'
 import { User } from '@supabase/supabase-js'
 import { useToast } from '@/components/ui/use-toast'
+import * as Sentry from '@sentry/nextjs'
 
 interface UseProfileReturn {
 	user: User | null
@@ -59,6 +60,7 @@ export function useProfile(): UseProfileReturn {
 
 			setProfile(data)
 		} catch (err: any) {
+			Sentry.captureException(err)
 			console.error('Error in useProfile:', err)
 			setError(err)
 			toast({

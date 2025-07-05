@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import * as Sentry from '@sentry/nextjs'
 
 const profileFormSchema = z.object({
   height_cm: z.number().min(100).max(250).optional(),
@@ -61,6 +62,7 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
         description: 'Profile updated successfully.',
       })
     } catch (error) {
+      Sentry.captureException(error)
       console.error('Error saving profile:', error)
       toast({
         title: 'Error',
