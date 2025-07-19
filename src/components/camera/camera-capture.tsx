@@ -8,7 +8,6 @@ import { useCallback, useRef, useState } from 'react'
 import { AnalysisResult } from './analysis-result'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
-import * as Sentry from '@sentry/nextjs'
 
 export function CameraCapture() {
 	const videoRef = useRef<HTMLVideoElement>(null)
@@ -34,7 +33,6 @@ export function CameraCapture() {
 				videoRef.current.srcObject = mediaStream
 			}
 		} catch (error) {
-			Sentry.captureException(error)
 			toast({
 				title: 'Error',
 				description: 'Failed to access camera',
@@ -98,7 +96,6 @@ export function CameraCapture() {
 			const result = await analyzeImage(capturedImage, userText)
 			setAnalysisResult(result)
 		} catch (error) {
-			Sentry.captureException(error)
 			toast({
 				title: 'Error',
 				description: 'Failed to analyze image',

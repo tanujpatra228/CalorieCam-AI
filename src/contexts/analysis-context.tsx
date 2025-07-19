@@ -4,7 +4,6 @@ import { createContext, useContext, useState } from 'react'
 import { AnalysisData } from '@/types/database'
 import { logAnalysis } from '@/app/actions/analysis'
 import { useToast } from '@/components/ui/use-toast'
-import * as Sentry from '@sentry/nextjs'
 
 interface AnalysisContextType {
   isLoggedIn: boolean
@@ -42,7 +41,6 @@ export function AnalysisProvider({
         description: 'Analysis logged successfully!',
       })
     } catch (error) {
-      Sentry.captureException(error)
       console.error('Error logging analysis:', error)
       toast({
         title: 'Error',
