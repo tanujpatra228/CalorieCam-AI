@@ -18,6 +18,7 @@ REQUIREMENTS:
 – Always assume “medium” portion size if dish type is generic (e.g., “pasta”) and note this assumption in an internal “notes” field.
 – If any component cannot be confidently identified, set its value to 'null' and add a “notes” entry explaining why.
 - Always add the bioavailability of protein in the individual component of the meal in “notes”.
+- In the "notes" field, mention the identified component of the meal that is controbuting most to the total calories.
 – Round all numeric values to one decimal place.
 
 Additional User Provided Context:
