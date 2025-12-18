@@ -1,106 +1,165 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# CalorieCam AI
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
-
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+An AI-powered nutrition tracking application that analyzes food images using Google's Gemini AI to provide detailed nutritional information including calories, macronutrients, and digestion metrics.
 
 ## Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- **AI-Powered Food Analysis**: Capture food images and get instant nutritional analysis using Google Gemini 2.0 Flash
+- **Comprehensive Nutrition Data**: Get detailed information including:
+  - Calories and macronutrients (carbs, protein, fat, fiber)
+  - Micronutrients (sodium, vitamin C)
+  - Total weight estimation
+  - Digestion time and calories required for digestion
+- **User Profiles**: Set and track daily calorie and protein budgets
+- **Analysis History**: View and manage your past food analyses
+- **Progress Tracking**: Visual progress indicators for calorie and protein budgets
+- **Authentication**: Secure user authentication with Supabase
+- **Dark Mode**: Theme switching support
 
-## Demo
+## Tech Stack
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+- **Framework**: Next.js (App Router) with TypeScript
+- **Backend**: Supabase (PostgreSQL database, authentication)
+- **AI**: Google Generative AI (Gemini 2.0 Flash)
+- **UI Components**: Radix UI primitives
+- **Styling**: Tailwind CSS
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts
+- **Error Tracking**: Sentry
+- **Icons**: Lucide React
 
-## Deploy to Vercel
+## Prerequisites
 
-Vercel deployment will guide you through creating a Supabase account and project.
+- Node.js 18+ and npm
+- A Supabase account and project
+- A Google AI API key (Gemini)
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+## Installation
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd CalorieCam-AI
+```
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+2. Install dependencies:
+```bash
+npm install
+```
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+3. Set up environment variables:
+Create a `.env.local` file in the root directory with the following variables:
 
-## Clone and run locally
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GOOGLE_AI_API_KEY=your_google_ai_api_key
+```
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+4. Set up the database:
+Run the SQL migrations in your Supabase project:
+- `src/utils/supabase/migrations/20240320000000_create_analysis_logs.sql`
+- `src/utils/supabase/migrations/20240330000000_create_user_profiles.sql`
 
-2. Create a Next.js app using the Supabase Starter template npx command
+You can run these migrations through the Supabase SQL Editor or using the Supabase CLI.
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+5. Start the development server:
+```bash
+npm run dev
+```
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+## Environment Variables
 
-3. Use `cd` to change into the app's directory
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
+| `GOOGLE_AI_API_KEY` | Your Google AI API key for Gemini | Yes |
 
-   ```bash
-   cd with-supabase-app
-   ```
+## Database Schema
 
-4. Rename `.env.example` to `.env.local` and update the following:
+### `analysis_logs` Table
+Stores food analysis results with the following fields:
+- `id`: UUID primary key
+- `user_id`: Foreign key to auth.users
+- `dish_name`: Name of the dish
+- `total_weight_g`: Estimated weight in grams
+- `total_digestion_time_m`: Estimated digestion time in minutes
+- `total_calories_to_digest_kcal`: Calories required for digestion
+- `image_url`: URL to the captured image
+- `macros`: JSONB containing macronutrient data
+- `micros`: JSONB containing micronutrient data
+- `notes`: Array of notes and assumptions
+- `created_at`: Timestamp
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   SENTRY_DSN=your_sentry_dsn_here
-   NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn_here
-   ```
+### `user_profiles` Table
+Stores user profile and goal information:
+- `id`: UUID primary key (references auth.users)
+- `height_cm`: User height in centimeters
+- `weight_kg`: User weight in kilograms
+- `daily_calories_budget`: Daily calorie target
+- `daily_protein_target_g`: Daily protein target in grams
+- `activity_level`: Activity level (sedentary, light, moderate, active, very_active)
+- `goal`: User goal (lose_weight, maintain, gain_muscle)
+- `created_at`: Timestamp
+- `updated_at`: Timestamp
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
+Both tables have Row Level Security (RLS) enabled to ensure users can only access their own data.
 
-5. You can now run the Next.js local development server:
+## Project Structure
 
-   ```bash
-   npm run dev
-   ```
+```
+src/
+├── app/                    # Next.js app router pages
+│   ├── (auth-pages)/      # Authentication pages (sign-in, sign-up, etc.)
+│   ├── camera/            # Camera capture page
+│   ├── protected/         # Protected routes (profile, analysis history)
+│   └── actions/           # Server actions
+├── components/            # React components
+│   ├── camera/           # Camera and analysis components
+│   ├── profile/          # Profile management components
+│   ├── tutorial/        # Tutorial/onboarding components
+│   └── ui/              # Reusable UI components (shadcn/ui)
+├── contexts/            # React contexts
+├── hooks/              # Custom React hooks
+├── lib/                # Core libraries and utilities
+├── types/              # TypeScript type definitions
+└── utils/              # Utility functions
+    └── supabase/       # Supabase client utilities and migrations
+```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+## Key Features
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+### AI Food Analysis
+The app uses Google's Gemini 2.0 Flash model to analyze food images. The AI identifies dishes, estimates portion sizes, and calculates comprehensive nutritional information including:
+- Macronutrients (calories, carbs, protein, fat, fiber)
+- Micronutrients (sodium, vitamin C)
+- Digestion metrics (time and calories required)
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+### Budget Tracking
+Users can set daily calorie and protein targets in their profile. The app tracks progress throughout the day with visual progress indicators.
 
-## Feedback and issues
+### Analysis History
+All food analyses are saved to the database, allowing users to review their nutrition history and track patterns over time.
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+## Scripts
 
-## More Supabase examples
+- `npm run dev`: Start development server
+- `npm run build`: Build for production
+- `npm run start`: Start production server
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+## Security
+
+- Row Level Security (RLS) enabled on all database tables
+- Secure authentication via Supabase
+- Environment variables for sensitive API keys
+- Server-side API key validation
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request

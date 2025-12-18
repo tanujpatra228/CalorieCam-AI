@@ -1,46 +1,20 @@
 'use client'
-
-import { createClient } from '@/lib/client'
-import { redirect } from 'next/navigation'
 import { AnalysisLog } from '@/types/database'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { format, startOfDay, endOfDay, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Button } from '@/components/ui/button'
 import { Camera, Utensils } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Progress } from '@/components/ui/progress'
-import { useProfile } from '@/hooks/use-profile'
 import { CaloriesBudgetProgress } from '@/components/calorie-budget-progress'
 import { ProteinTargetProgress } from '@/components/protein-budget-progress'
 
-async function getAnalysisLogs(date: string) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return redirect('/sign-in')
-  }
+import { getAnalysisLogsByDate } from '@/services/analysis-service'
 
-  const startDate = startOfDay(parseISO(date))
-  const endDate = endOfDay(parseISO(date))
-  
-  const { data, error } = await supabase
-    .from('analysis_logs')
-    .select('*')
-    .gte('created_at', startDate.toISOString())
-    .lte('created_at', endDate.toISOString())
-    .order('created_at', { ascending: false })
-    
-  if (error) {
-    console.error('Error fetching analysis logs:', error)
-    throw new Error('Failed to fetch analysis logs')
-  }
-  
-  return data as AnalysisLog[]
+async function getAnalysisLogs(date: string) {
+  return await getAnalysisLogsByDate(date)
 }
 
 interface DailyMacros {
@@ -77,7 +51,6 @@ export default function AnalysisHistoryPage() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [logs, setLogs] = useState<AnalysisLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const { isLoggedIn, profile } = useProfile();
 
   useEffect(() => {
     const fetchLogs = async () => {

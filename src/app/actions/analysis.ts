@@ -1,66 +1,21 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
-import { AnalysisData } from '@/types/database'
-import { revalidatePath } from 'next/cache'
+/**
+ * Server actions for analysis
+ * These actions delegate to the analysis service layer
+ */
+
+import { logAnalysis as logAnalysisService, getAnalysisLogs as getAnalysisLogsService } from '@/services/analysis-service'
+import type { AnalysisData } from '@/types/database'
+import type { AnalysisLog } from '@/types/database'
 
 export async function logAnalysis(
   analysisData: AnalysisData,
-  imageUrl: string
-) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error('User must be logged in to log analysis')
-  }
-  
-  const { data, error } = await supabase
-    .from('analysis_logs')
-    .insert({
-      user_id: user.id,
-      dish_name: analysisData.dish_name,
-      total_weight_g: analysisData.total_weight_g,
-      total_digestion_time_m: analysisData.total_digestion_time_m,
-      total_calories_to_digest_kcal: analysisData.total_calories_to_digest_kcal,
-      image_url: imageUrl,
-      macros: analysisData.macros,
-      micros: analysisData.micros,
-      notes: analysisData.notes
-    })
-    .select()
-    .single()
-    
-  if (error) {
-    console.error('Error logging analysis:', error)
-    throw new Error('Failed to log analysis: '+error.message)
-  }
-
-  // Revalidate the analysis history page
-  revalidatePath('/protected/analysis-history')
-  
-  return data
+  imageUrl: string,
+): Promise<AnalysisLog> {
+  return await logAnalysisService(analysisData, imageUrl)
 }
 
-export async function getAnalysisLogs() {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error('User must be logged in to view analysis logs')
-  }
-  
-  const { data, error } = await supabase
-    .from('analysis_logs')
-    .select('*')
-    .order('created_at', { ascending: false })
-    
-  if (error) {
-    console.error('Error fetching analysis logs:', error)
-    throw new Error('Failed to fetch analysis logs')
-  }
-  
-  return data
+export async function getAnalysisLogs(): Promise<AnalysisLog[]> {
+  return await getAnalysisLogsService()
 } 

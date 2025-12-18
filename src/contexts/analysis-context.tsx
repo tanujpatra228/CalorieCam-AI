@@ -4,6 +4,8 @@ import { createContext, useContext, useState } from 'react'
 import { AnalysisData } from '@/types/database'
 import { logAnalysis } from '@/app/actions/analysis'
 import { useToast } from '@/components/ui/use-toast'
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, TOAST_TITLES } from '@/lib/constants'
+import { getUserFriendlyErrorMessage, formatErrorForLogging } from '@/lib/errors'
 
 interface AnalysisContextType {
   isLoggedIn: boolean
@@ -26,8 +28,8 @@ export function AnalysisProvider({
   const logCurrentAnalysis = async (data: AnalysisData, imageUrl: string) => {
     if (!isLoggedIn) {
       toast({
-        title: 'Authentication Required',
-        description: 'Please sign in to log your analysis.',
+        title: TOAST_TITLES.AUTHENTICATION_REQUIRED,
+        description: ERROR_MESSAGES.AUTH.AUTHENTICATION_REQUIRED,
         variant: 'destructive'
       })
       return
@@ -37,14 +39,15 @@ export function AnalysisProvider({
       setIsLogging(true)
       await logAnalysis(data, imageUrl)
       toast({
-        title: 'Success',
-        description: 'Analysis logged successfully!',
+        title: TOAST_TITLES.SUCCESS,
+        description: SUCCESS_MESSAGES.ANALYSIS.LOGGED_SUCCESSFULLY,
       })
     } catch (error) {
-      console.error('Error logging analysis:', error)
+      const errorMessage = formatErrorForLogging(error)
+      console.error('Error logging analysis:', errorMessage)
       toast({
-        title: 'Error',
-        description: 'Failed to log analysis. Please try again.',
+        title: TOAST_TITLES.ERROR,
+        description: getUserFriendlyErrorMessage(error) || ERROR_MESSAGES.ANALYSIS.FAILED_TO_LOG,
         variant: 'destructive'
       })
     } finally {

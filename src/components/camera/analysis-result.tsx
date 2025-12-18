@@ -10,16 +10,7 @@ import { useAnalysis } from '@/contexts/analysis-context'
 import { AnalysisData } from '@/types/database'
 import { useRouter } from 'next/navigation'
 import { LogsIcon } from 'lucide-react'
-
-interface MacroData {
-	calories_kcal: number
-	carbs_g: number
-	protein_g: number
-	fat_g: number
-	sugars_g: number
-	sat_fat_g: number
-	fiber_g: number
-}
+import { formatErrorForLogging } from '@/lib/errors'
 
 interface AnalysisResultProps {
 	result: string
@@ -69,7 +60,8 @@ export function AnalysisResult({
 			const cleanJson = result.replace(/^```json\n/, '').replace(/```$/, '')
 			return JSON.parse(cleanJson) as AnalysisData
 		} catch (error) {
-			console.error('Failed to parse analysis result:', error)
+			const errorMessage = formatErrorForLogging(error)
+			console.error('Failed to parse analysis result:', errorMessage)
 			return null
 		}
 	}, [result])
@@ -157,8 +149,9 @@ export function AnalysisResult({
 									strokeWidth={5}
 								>
 									<Label
-										content={(props: any) => {
-											const { viewBox } = props
+										content={(props: unknown) => {
+											const typedProps = props as { viewBox?: { cx?: number; cy?: number } }
+											const { viewBox } = typedProps
 											if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
 												return (
 													<text
@@ -184,6 +177,7 @@ export function AnalysisResult({
 													</text>
 												)
 											}
+											return null
 										}}
 									/>
 								</Pie>

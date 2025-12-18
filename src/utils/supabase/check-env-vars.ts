@@ -1,6 +1,8 @@
 // This check can be removed
 // it is just for tutorial purposes
 
+import { config } from "@/lib/config";
+
 export const hasEnvVars =
-  process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  !!config.supabase.url &&
+  !!config.supabase.anonKey;

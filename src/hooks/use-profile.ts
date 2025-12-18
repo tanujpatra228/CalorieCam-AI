@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/utils/supabase/client'
 import { UserProfile } from '@/types/profile'
 import { User } from '@supabase/supabase-js'
 import { useToast } from '@/components/ui/use-toast'
@@ -58,9 +58,10 @@ export function useProfile(): UseProfileReturn {
 			}
 
 			setProfile(data)
-		} catch (err: any) {
-			console.error('Error in useProfile:', err)
-			setError(err)
+		} catch (err) {
+			const error = err instanceof Error ? err : new Error('Unknown error occurred')
+			console.error('Error in useProfile:', error)
+			setError(error)
 			toast({
 				title: 'Error',
 				description: 'Failed to load profile. Please try again.',

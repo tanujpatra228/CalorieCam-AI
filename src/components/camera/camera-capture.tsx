@@ -2,11 +2,10 @@
 
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
-import { analyzeImage } from '@/lib/ai-service'
+import { analyzeImage } from '@/services/ai-service'
 import { CameraIcon, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { AnalysisResult } from './analysis-result'
-import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 
 export function CameraCapture() {

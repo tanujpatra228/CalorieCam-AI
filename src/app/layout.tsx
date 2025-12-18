@@ -9,10 +9,9 @@ import Link from "next/link";
 import "./globals.css";
 import { AnalysisProvider } from '@/contexts/analysis-context'
 import { createClient } from '@/utils/supabase/server'
+import { getAppUrl } from "@/lib/config";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+const defaultUrl = getAppUrl();
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/client'
+import { createClient } from '@/utils/supabase/client'
 import { UserProfile, ProfileFormData } from '@/types/profile'
 import { ProfileForm } from '@/components/profile/profile-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,9 +34,10 @@ export default function ProfilePage() {
         if (error) throw error
 
         setProfile(data)
-      } catch (error: any) {
-        console.error('Error fetching profile:', error);
-        if (error.code === "PGRST116") {
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error('Unknown error occurred')
+        console.error('Error fetching profile:', err);
+        if (err && typeof err === 'object' && 'code' in err && err.code === "PGRST116") {
           toast({
             title: 'Note',
             description: 'Update your profile to get started.',
