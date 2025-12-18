@@ -24,6 +24,11 @@ function getOptionalEnvVar(key: string): string | undefined {
 }
 
 /**
+ * Supported AI providers
+ */
+export type AIProvider = 'google' | 'openai' | 'anthropic'
+
+/**
  * Application configuration interface
  */
 export interface AppConfig {
@@ -32,6 +37,7 @@ export interface AppConfig {
     anonKey: string
   }
   ai: {
+    provider: AIProvider
     apiKey: string
   }
   app: {
@@ -52,6 +58,7 @@ export const config: AppConfig = {
     anonKey: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY') || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   },
   ai: {
+    provider: (getOptionalEnvVar('AI_PROVIDER') || process.env.AI_PROVIDER || 'google') as AIProvider,
     apiKey: getEnvVar('GOOGLE_AI_API_KEY') || process.env.GOOGLE_AI_API_KEY!,
   },
   app: {
@@ -66,7 +73,6 @@ export const config: AppConfig = {
  * Helper to get Supabase URL
  */
 export function getSupabaseUrl(): string {
-  console.log('getSupabaseUrl', config.supabase.url);
   return config.supabase.url
 }
 
@@ -82,6 +88,13 @@ export function getSupabaseAnonKey(): string {
  */
 export function getGoogleAiApiKey(): string {
   return config.ai.apiKey
+}
+
+/**
+ * Helper to get the configured AI provider
+ */
+export function getAIProvider(): AIProvider {
+  return config.ai.provider
 }
 
 /**

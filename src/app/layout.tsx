@@ -67,17 +67,7 @@ export default async function RootLayout({
                 </div>
 
                 <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-4">
-                  <p>
-                    Developed by{" "}
-                    <a
-                      href="https://www.linkedin.com/in/tanujpatra/"
-                      target="_blank"
-                      className="font-bold hover:underline"
-                      rel="noreferrer"
-                    >
-                      Tanuj G. Patra
-                    </a>
-                  </p>
+                  <p>Made with passion and technology</p>
                   <ThemeSwitcher />
                 </footer>
               </div>

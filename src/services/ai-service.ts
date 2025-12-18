@@ -1,17 +1,12 @@
 'use server'
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { IMG_ANALYZE_PROMPT } from '@/lib/consts'
-import { getGoogleAiApiKey } from '@/lib/config'
-import { AI_CONFIG } from '@/lib/constants'
+import { AIAdapterFactory } from '@/adapters/ai-adapter.factory'
 import { AIServiceError } from '@/lib/errors'
 import { formatErrorForLogging } from '@/lib/errors'
 
-// Initialize the Google AI client
-const genAI = new GoogleGenerativeAI(getGoogleAiApiKey())
-
 /**
- * Analyzes an image using Google Generative AI
+ * Analyzes an image using the configured AI provider
  * @param imageData - Base64 encoded image data (with or without data URL prefix)
  * @param additionalContext - Optional additional context for the analysis
  * @returns The analysis result as a string (JSON format)
@@ -22,29 +17,15 @@ export async function analyzeImage(
   additionalContext?: string,
 ): Promise<string> {
   try {
-    const base64Data = imageData.includes(',')
-      ? imageData.split(',')[1]
-      : imageData
+    const adapter = AIAdapterFactory.getAdapter()
+    const prompt = getAnalyzePrompt(additionalContext)
 
-    // Initialize the model
-    const model = genAI.getGenerativeModel({ model: AI_CONFIG.MODEL_NAME })
+    const result = await adapter.analyzeImage({
+      imageData,
+      prompt,
+    })
 
-    // Create image part
-    const imagePart = {
-      inlineData: {
-        data: base64Data,
-        mimeType: AI_CONFIG.IMAGE_MIME_TYPE,
-      },
-    }
-
-    // Generate content
-    const result = await model.generateContent([
-      getAnalyzePrompt(additionalContext),
-      imagePart,
-    ])
-
-    const response = await result.response
-    return response.text()
+    return result
   } catch (error) {
     const errorMessage = formatErrorForLogging(error)
     console.error('Error analyzing image:', errorMessage)
