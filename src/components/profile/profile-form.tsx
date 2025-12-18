@@ -1,9 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { UserProfile, ProfileFormData } from '@/types/profile'
+import { UserProfile, ProfileFormData, calculateDailyCaloriesBudget, calculateProteinTarget } from '@/types/profile'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -52,6 +53,29 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
       daily_protein_target_g: profile?.daily_protein_target_g ?? undefined,
     },
   })
+
+  const height = form.watch('height_cm')
+  const weight = form.watch('weight_kg')
+  const activityLevel = form.watch('activity_level')
+  const goal = form.watch('goal')
+
+  useEffect(() => {
+    if (height && weight && activityLevel && goal) {
+      const caloriesBudget = calculateDailyCaloriesBudget(
+        weight,
+        height,
+        activityLevel,
+        goal
+      )
+      const proteinTarget = calculateProteinTarget(weight, goal)
+      
+      form.setValue('daily_calories_budget', caloriesBudget, { shouldValidate: false })
+      form.setValue('daily_protein_target_g', proteinTarget, { shouldValidate: false })
+    } else {
+      form.setValue('daily_calories_budget', undefined, { shouldValidate: false })
+      form.setValue('daily_protein_target_g', undefined, { shouldValidate: false })
+    }
+  }, [height, weight, activityLevel, goal, form])
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
@@ -137,7 +161,7 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
                   <FormLabel>Activity Level</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -168,7 +192,7 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
                   <FormLabel>Goal</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -205,13 +229,15 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter daily calories budget"
+                      placeholder="Auto-calculated"
                       {...field}
-                      onChange={e => field.onChange(e.target.valueAsNumber)}
+                      value={field.value ?? ''}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
                     />
                   </FormControl>
                   <FormDescription>
-                    Your daily calorie intake budget
+                    Automatically calculated based on your height, weight, activity level, and goal
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -227,13 +253,15 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter daily protein target"
+                      placeholder="Auto-calculated"
                       {...field}
-                      onChange={e => field.onChange(e.target.valueAsNumber)}
+                      value={field.value ?? ''}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
                     />
                   </FormControl>
                   <FormDescription>
-                    Your daily protein intake target in grams
+                    Automatically calculated based on your weight and goal
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
