@@ -24,7 +24,7 @@ export const ROUTES = {
  * AI Service configuration
  */
 export const AI_CONFIG = {
-  MODEL_NAME: 'gemini-2.0-flash',
+  MODEL_NAME: 'gemini-1.5-flash',
   IMAGE_MIME_TYPE: 'image/jpeg',
   IMAGE_FORMAT: 'jpeg',
 } as const
