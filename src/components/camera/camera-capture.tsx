@@ -7,6 +7,7 @@ import { CameraIcon, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { AnalysisResult } from './analysis-result'
 import { Textarea } from '../ui/textarea'
+import { compressImageFromCanvas, compressImageFromFile } from '@/utils/image-compression'
 
 export function CameraCapture() {
 	const videoRef = useRef<HTMLVideoElement>(null)
@@ -56,14 +57,22 @@ export function CameraCapture() {
 			const ctx = canvas.getContext('2d')
 			if (ctx) {
 				ctx.drawImage(videoRef.current, 0, 0)
-				const imageData = canvas.toDataURL('image/jpeg')
-				setCapturedImage(imageData)
-				stopCamera()
+				try {
+					const compressedImageData = compressImageFromCanvas(canvas)
+					setCapturedImage(compressedImageData)
+					stopCamera()
+				} catch (error) {
+					toast({
+						title: 'Error',
+						description: 'Failed to compress image',
+						variant: 'destructive'
+					})
+				}
 			}
 		}
-	}, [stopCamera])
+	}, [stopCamera, toast])
 
-	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0]
 		if (file) {
 			if (!file.type.startsWith('image/')) {
@@ -75,15 +84,17 @@ export function CameraCapture() {
 				return
 			}
 
-			const reader = new FileReader()
-			reader.onload = (e) => {
-				const result = e.target?.result
-				if (typeof result === 'string') {
-					setCapturedImage(result)
-					stopCamera()
-				}
+			try {
+				const compressedImageData = await compressImageFromFile(file)
+				setCapturedImage(compressedImageData)
+				stopCamera()
+			} catch (error) {
+				toast({
+					title: 'Error',
+					description: 'Failed to process image',
+					variant: 'destructive'
+				})
 			}
-			reader.readAsDataURL(file)
 		}
 	}
 
