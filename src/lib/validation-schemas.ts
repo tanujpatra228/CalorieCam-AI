@@ -39,14 +39,6 @@ export const isoDateSchema = z
   )
 
 /**
- * URL validation schema
- */
-const urlSchema = z
-  .string()
-  .url('Invalid URL format')
-  .max(2048, 'URL is too long')
-
-/**
  * Base64 image data validation schema
  */
 const base64ImageSchema = z
@@ -58,6 +50,30 @@ const base64ImageSchema = z
       return /^[A-Za-z0-9+/]*={0,2}$/.test(base64Data)
     },
     { message: 'Invalid base64 image data' }
+  )
+
+/**
+ * Image URL validation schema - accepts both regular URLs and base64 data URLs
+ */
+const imageUrlSchema = z
+  .string()
+  .min(1, 'Image URL is required')
+  .refine(
+    (value) => {
+      // Check if it's a base64 data URL
+      if (value.startsWith('data:image/')) {
+        // Base64 data URLs can be very long, allow up to 10MB (approximately 13,333,333 chars for base64)
+        return value.length <= 15_000_000
+      }
+      // Regular URL validation
+      try {
+        new URL(value)
+        return value.length <= 2048
+      } catch {
+        return false
+      }
+    },
+    { message: 'Invalid image URL format' }
   )
 
 /**
@@ -136,7 +152,7 @@ export const analysisDataSchema = z.object({
  */
 export const logAnalysisSchema = z.object({
   analysisData: analysisDataSchema,
-  imageUrl: urlSchema,
+  imageUrl: imageUrlSchema,
 })
 
 /**

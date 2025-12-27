@@ -4,8 +4,11 @@ import { createContext, useContext, useState } from 'react'
 import { AnalysisData } from '@/types/database'
 import { logAnalysis } from '@/app/actions/analysis'
 import { useToast } from '@/components/ui/use-toast'
-import { ERROR_MESSAGES, SUCCESS_MESSAGES, TOAST_TITLES } from '@/lib/constants'
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, TOAST_TITLES, ROUTES } from '@/lib/constants'
 import { getUserFriendlyErrorMessage, formatErrorForLogging } from '@/lib/errors'
+import { ToastAction } from '@/components/ui/toast'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface AnalysisContextType {
   isLoggedIn: boolean
@@ -41,6 +44,13 @@ export function AnalysisProvider({
       toast({
         title: TOAST_TITLES.SUCCESS,
         description: SUCCESS_MESSAGES.ANALYSIS.LOGGED_SUCCESSFULLY,
+        action: (
+          <ToastAction asChild>
+            <Button asChild variant="outline" size="sm">
+              <Link href={ROUTES.PROTECTED_ANALYSIS_HISTORY}>View History</Link>
+            </Button>
+          </ToastAction>
+        ),
       })
     } catch (error) {
       const errorMessage = formatErrorForLogging(error)
