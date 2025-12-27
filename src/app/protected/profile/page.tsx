@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress'
 import { Activity, Target, User } from 'lucide-react'
 import { AnalysisLog } from '@/types/database'
 import { format } from 'date-fns'
+import { getDateRange } from '@/utils/date-utils'
 
 function calculateDailyMacros(logs: AnalysisLog[]): { calories: number; protein: number } {
   return logs.reduce((acc, log) => ({
@@ -46,10 +47,7 @@ export default function ProfilePage() {
             .single(),
           (async () => {
             const today = format(new Date(), 'yyyy-MM-dd')
-            const startDate = new Date(today)
-            startDate.setHours(0, 0, 0, 0)
-            const endDate = new Date(today)
-            endDate.setHours(23, 59, 59, 999)
+            const { startDate, endDate } = getDateRange(today)
 
             const { data, error } = await supabase
               .from('analysis_logs')
@@ -67,9 +65,9 @@ export default function ProfilePage() {
         setProfile(profileResult.data)
         setTodayLogs(logsResult as AnalysisLog[])
       } catch (error) {
-        const err = error instanceof Error ? error : new Error('Unknown error occurred')
-        console.error('Error fetching data:', err);
-        if (err && typeof err === 'object' && 'code' in err && err.code === "PGRST116") {
+        const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred')
+        console.error('Error fetching data:', errorInstance);
+        if (errorInstance && typeof errorInstance === 'object' && 'code' in errorInstance && errorInstance.code === "PGRST116") {
           toast({
             title: 'Note',
             description: 'Update your profile to get started.',

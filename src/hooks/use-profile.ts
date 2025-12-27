@@ -58,10 +58,10 @@ export function useProfile(): UseProfileReturn {
 			}
 
 			setProfile(data)
-		} catch (err) {
-			const error = err instanceof Error ? err : new Error('Unknown error occurred')
-			console.error('Error in useProfile:', error)
-			setError(error)
+		} catch (error) {
+			const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred')
+			console.error('Error in useProfile:', errorInstance)
+			setError(errorInstance)
 			toast({
 				title: 'Error',
 				description: 'Failed to load profile. Please try again.',

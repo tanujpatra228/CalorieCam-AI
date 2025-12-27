@@ -3,10 +3,14 @@
  * Compresses and resizes images to reduce payload size for API requests
  */
 
-const MAX_WIDTH = 1920
-const MAX_HEIGHT = 1920
-const JPEG_QUALITY = 0.8
-const MAX_FILE_SIZE_BYTES = 800 * 1024 // 800KB target
+import { IMAGE_COMPRESSION } from '@/lib/constants'
+
+const MAX_WIDTH = IMAGE_COMPRESSION.MAX_WIDTH
+const MAX_HEIGHT = IMAGE_COMPRESSION.MAX_HEIGHT
+const JPEG_QUALITY = IMAGE_COMPRESSION.JPEG_QUALITY
+const MAX_FILE_SIZE_BYTES = IMAGE_COMPRESSION.MAX_FILE_SIZE_BYTES
+const MIN_QUALITY = IMAGE_COMPRESSION.MIN_QUALITY
+const QUALITY_STEP = IMAGE_COMPRESSION.QUALITY_STEP
 
 /**
  * Compresses an image from a canvas element
@@ -23,19 +27,19 @@ export function compressImageFromCanvas(canvas: HTMLCanvasElement): string {
   compressedCanvas.width = width
   compressedCanvas.height = height
 
-  const ctx = compressedCanvas.getContext('2d')
-  if (!ctx) {
+  const context = compressedCanvas.getContext('2d')
+  if (!context) {
     throw new Error('Failed to get canvas context')
   }
 
-  ctx.drawImage(canvas, 0, 0, width, height)
+  context.drawImage(canvas, 0, 0, width, height)
 
   let quality = JPEG_QUALITY
   let dataUrl = compressedCanvas.toDataURL('image/jpeg', quality)
 
   // Further reduce quality if still too large
-  while (getBase64Size(dataUrl) > MAX_FILE_SIZE_BYTES && quality > 0.3) {
-    quality -= 0.1
+  while (getBase64Size(dataUrl) > MAX_FILE_SIZE_BYTES && quality > MIN_QUALITY) {
+    quality -= QUALITY_STEP
     dataUrl = compressedCanvas.toDataURL('image/jpeg', quality)
   }
 
@@ -65,20 +69,20 @@ export function compressImageFromFile(file: File): Promise<string> {
         canvas.width = width
         canvas.height = height
 
-        const ctx = canvas.getContext('2d')
-        if (!ctx) {
+        const context = canvas.getContext('2d')
+        if (!context) {
           reject(new Error('Failed to get canvas context'))
           return
         }
 
-        ctx.drawImage(img, 0, 0, width, height)
+        context.drawImage(img, 0, 0, width, height)
 
         let quality = JPEG_QUALITY
         let dataUrl = canvas.toDataURL('image/jpeg', quality)
 
         // Further reduce quality if still too large
-        while (getBase64Size(dataUrl) > MAX_FILE_SIZE_BYTES && quality > 0.3) {
-          quality -= 0.1
+        while (getBase64Size(dataUrl) > MAX_FILE_SIZE_BYTES && quality > MIN_QUALITY) {
+          quality -= QUALITY_STEP
           dataUrl = canvas.toDataURL('image/jpeg', quality)
         }
 

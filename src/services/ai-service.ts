@@ -1,9 +1,11 @@
 'use server'
 
-import { IMG_ANALYZE_PROMPT } from '@/lib/consts'
+import { IMG_ANALYZE_PROMPT } from '@/lib/constants'
 import { AIAdapterFactory } from '@/adapters/ai-adapter.factory'
 import { AIServiceError } from '@/lib/errors'
 import { formatErrorForLogging } from '@/lib/errors'
+import { validateInput } from '@/lib/validation'
+import { analyzeImageSchema } from '@/lib/validation-schemas'
 
 /**
  * Analyzes an image using the configured AI provider
@@ -16,6 +18,8 @@ export async function analyzeImage(
   imageData: string,
   additionalContext?: string,
 ): Promise<string> {
+  validateInput(analyzeImageSchema, { imageData, additionalContext })
+  
   try {
     const adapter = AIAdapterFactory.getAdapter()
     const prompt = getAnalyzePrompt(additionalContext)

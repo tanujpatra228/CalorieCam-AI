@@ -6,6 +6,9 @@ import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/lib/constants'
 import { AuthError, DatabaseError } from '@/lib/errors'
 import { formatErrorForLogging } from '@/lib/errors'
+import { getDateRange } from '@/utils/date-utils'
+import { validateInput } from '@/lib/validation'
+import { analysisDataSchema, getAnalysisLogsByDateSchema } from '@/lib/validation-schemas'
 
 /**
  * Logs an analysis result to the database
@@ -19,6 +22,8 @@ export async function logAnalysis(
   analysisData: AnalysisData,
   imageUrl: string,
 ): Promise<AnalysisLog> {
+  validateInput(analysisDataSchema, analysisData)
+  
   const supabase = await createClient()
 
   const {
@@ -108,6 +113,8 @@ export async function getAnalysisLogs(): Promise<AnalysisLog[]> {
 export async function getAnalysisLogsByDate(
   date: string,
 ): Promise<AnalysisLog[]> {
+  validateInput(getAnalysisLogsByDateSchema, { date })
+  
   const supabase = await createClient()
 
   const {
@@ -118,11 +125,7 @@ export async function getAnalysisLogsByDate(
     throw new AuthError('User must be logged in to view analysis logs')
   }
 
-  const startDate = new Date(date)
-  startDate.setHours(0, 0, 0, 0)
-
-  const endDate = new Date(date)
-  endDate.setHours(23, 59, 59, 999)
+  const { startDate, endDate } = getDateRange(date)
 
   const { data, error } = await supabase
     .from('analysis_logs')

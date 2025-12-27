@@ -6,7 +6,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-export default async function Signup(props: {
+export default async function SignUp(props: {
   searchParams: Promise<Message>;
 }) {
   const searchParams = await props.searchParams;

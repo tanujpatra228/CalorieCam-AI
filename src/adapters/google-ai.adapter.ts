@@ -21,9 +21,9 @@ export class GoogleAIAdapter implements AIAdapter {
   }
 
   async analyzeImage(params: AnalyzeImageParams): Promise<string> {
-    const fallbackModels = ['gemini-pro', 'gemini-1.5-pro-001']
+    const fallbackModels = AI_CONFIG.FALLBACK_MODELS
     const modelsToTry = [this.modelName, ...fallbackModels]
-    const maxRetries = 3
+    const maxRetries = AI_CONFIG.MAX_RETRIES
 
     for (const modelToTry of modelsToTry) {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -47,39 +47,15 @@ export class GoogleAIAdapter implements AIAdapter {
         } catch (error) {
           const errorMessage = formatErrorForLogging(error)
 
-          const isRateLimitError =
-            errorMessage.includes('429') ||
-            errorMessage.includes('quota') ||
-            errorMessage.includes('rate limit')
-
-          const isModelNotFoundError =
-            errorMessage.includes('404') ||
-            errorMessage.includes('not found') ||
-            errorMessage.includes('is not found for API version')
-
-          if (isRateLimitError && attempt < maxRetries) {
-            const retryDelay = this.extractRetryDelay(errorMessage) || Math.pow(2, attempt) * 1000
+          if (this.shouldRetry(error, attempt, maxRetries)) {
+            const retryDelay = this.extractRetryDelay(errorMessage) || this.calculateRetryDelay(attempt)
             console.warn(`Rate limit hit. Retrying in ${retryDelay}ms (attempt ${attempt + 1}/${maxRetries})`)
             await this.sleep(retryDelay)
             continue
           }
 
-          if (isModelNotFoundError) {
-            if (modelToTry === modelsToTry[modelsToTry.length - 1]) {
-              console.error(`All models failed. Last attempt with '${modelToTry}' failed. Error:`, errorMessage)
-              throw new AIServiceError(
-                `No available models found. Tried: ${modelsToTry.join(', ')}. Please check your Google AI API configuration.`
-              )
-            }
-            console.warn(`Model '${modelToTry}' not found, trying fallback...`)
-            break
-          }
-
-          if (attempt === maxRetries) {
-            console.error(`Error analyzing image with Google AI (model: ${modelToTry}):`, errorMessage)
-            if (modelToTry === modelsToTry[modelsToTry.length - 1]) {
-              throw new AIServiceError('Failed to analyze image after retries')
-            }
+          const shouldBreak = this.handleModelError(error, modelToTry, modelsToTry, attempt, maxRetries)
+          if (shouldBreak) {
             break
           }
         }
@@ -89,12 +65,60 @@ export class GoogleAIAdapter implements AIAdapter {
     throw new AIServiceError('Failed to analyze image after trying all models')
   }
 
+  private shouldRetry(error: unknown, attempt: number, maxRetries: number): boolean {
+    const errorMessage = formatErrorForLogging(error)
+    const isRateLimitError =
+      errorMessage.includes('429') ||
+      errorMessage.includes('quota') ||
+      errorMessage.includes('rate limit')
+    return isRateLimitError && attempt < maxRetries
+  }
+
+  private handleModelError(
+    error: unknown,
+    modelName: string,
+    modelsToTry: string[],
+    attempt: number,
+    maxRetries: number
+  ): boolean {
+    const errorMessage = formatErrorForLogging(error)
+    const isModelNotFoundError =
+      errorMessage.includes('404') ||
+      errorMessage.includes('not found') ||
+      errorMessage.includes('is not found for API version')
+
+    if (isModelNotFoundError) {
+      if (modelName === modelsToTry[modelsToTry.length - 1]) {
+        console.error(`All models failed. Last attempt with '${modelName}' failed. Error:`, errorMessage)
+        throw new AIServiceError(
+          `No available models found. Tried: ${modelsToTry.join(', ')}. Please check your Google AI API configuration.`
+        )
+      }
+      console.warn(`Model '${modelName}' not found, trying fallback...`)
+      return true
+    }
+
+    if (attempt === maxRetries) {
+      console.error(`Error analyzing image with Google AI (model: ${modelName}):`, errorMessage)
+      if (modelName === modelsToTry[modelsToTry.length - 1]) {
+        throw new AIServiceError('Failed to analyze image after retries')
+      }
+      return true
+    }
+
+    return false
+  }
+
   private extractRetryDelay(errorMessage: string): number | null {
     const retryMatch = errorMessage.match(/retry in ([\d.]+)s/i)
     if (retryMatch) {
       return Math.ceil(parseFloat(retryMatch[1]) * 1000)
     }
     return null
+  }
+
+  private calculateRetryDelay(attempt: number): number {
+    return Math.pow(AI_CONFIG.RETRY_DELAY_MULTIPLIER, attempt) * AI_CONFIG.INITIAL_RETRY_DELAY_MS
   }
 
   private sleep(ms: number): Promise<void> {

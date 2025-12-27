@@ -14,13 +14,13 @@ export function CameraCapture() {
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [stream, setStream] = useState<MediaStream | null>(null)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
-	const [userText, setUserText] = useState<string>('')
+	const [additionalContext, setAdditionalContext] = useState<string>('')
 	const [isAnalyzing, setIsAnalyzing] = useState(false)
 	const [analysisResult, setAnalysisResult] = useState<string | null>(null)
-	const [isFullScreen, setisFullScreen] = useState<boolean>(false)
+	const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
 	const { toast } = useToast()
 
-	const isCameraOpen = isFullScreen && stream;
+	const isCameraOpen = isFullscreen && stream;
 
 	const startCamera = useCallback(async () => {
 		try {
@@ -28,7 +28,7 @@ export function CameraCapture() {
 				video: { facingMode: 'environment' }
 			})
 			setStream(mediaStream);
-			setisFullScreen(true);
+			setIsFullscreen(true);
 			if (videoRef.current) {
 				videoRef.current.srcObject = mediaStream
 			}
@@ -45,7 +45,7 @@ export function CameraCapture() {
 		if (stream) {
 			stream.getTracks().forEach(track => track.stop())
 			setStream(null)
-			setisFullScreen(true);
+			setIsFullscreen(true);
 		}
 	}, [stream])
 
@@ -54,9 +54,9 @@ export function CameraCapture() {
 			const canvas = document.createElement('canvas')
 			canvas.width = videoRef.current.videoWidth
 			canvas.height = videoRef.current.videoHeight
-			const ctx = canvas.getContext('2d')
-			if (ctx) {
-				ctx.drawImage(videoRef.current, 0, 0)
+			const context = canvas.getContext('2d')
+			if (context) {
+				context.drawImage(videoRef.current, 0, 0)
 				try {
 					const compressedImageData = compressImageFromCanvas(canvas)
 					setCapturedImage(compressedImageData)
@@ -103,7 +103,7 @@ export function CameraCapture() {
 
 		setIsAnalyzing(true)
 		try {
-			const result = await analyzeImage(capturedImage, userText)
+			const result = await analyzeImage(capturedImage, additionalContext)
 			setAnalysisResult(result)
 		} catch (error) {
 			toast({
@@ -119,7 +119,7 @@ export function CameraCapture() {
 	const handleRetake = () => {
 		setCapturedImage(null)
 		setAnalysisResult(null)
-		setisFullScreen(true)
+		setIsFullscreen(true)
 		if (fileInputRef.current) {
 			fileInputRef.current.value = ''
 		}
@@ -195,7 +195,7 @@ export function CameraCapture() {
 						alt="Captured"
 						className="max-w-2xl w-full rounded-lg"
 					/>
-					<Textarea placeholder={`2 Aalu parotha with curd, Salad (1 Cucumber, 1 Tomatos, 1 Onions, 1tbs Olive Oil)...`} onChange={(e) => setUserText(e.currentTarget.value)} value={userText} />
+					<Textarea placeholder={`2 Aalu parotha with curd, Salad (1 Cucumber, 1 Tomatos, 1 Onions, 1tbs Olive Oil)...`} onChange={(e) => setAdditionalContext(e.currentTarget.value)} value={additionalContext} />
 					<div className="flex gap-4">
 						<Button
 							variant="outline"

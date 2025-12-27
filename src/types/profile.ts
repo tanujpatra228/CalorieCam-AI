@@ -71,6 +71,8 @@ export const GOALS: { value: Goal; label: string; description: string }[] = [
 
 // Helper functions for calculations
 
+import { PROFILE_CALCULATION } from '@/lib/constants'
+
 /**
  * Calculates Basal Metabolic Rate (BMR) using Mifflin-St Jeor Equation
  * Assumes average age of 30 and male gender (can be adjusted later if needed)
@@ -78,7 +80,7 @@ export const GOALS: { value: Goal; label: string; description: string }[] = [
 function calculateBMR(weight: number, height: number): number {
   // Mifflin-St Jeor Equation: BMR = 10 * weight(kg) + 6.25 * height(cm) - 5 * age + 5 (male)
   // Using average age of 30
-  return 10 * weight + 6.25 * height - 5 * 30 + 5
+  return 10 * weight + 6.25 * height - 5 * PROFILE_CALCULATION.DEFAULT_AGE + 5
 }
 
 /**
@@ -86,16 +88,7 @@ function calculateBMR(weight: number, height: number): number {
  */
 function calculateTDEE(weight: number, height: number, activityLevel: ActivityLevel): number {
   const bmr = calculateBMR(weight, height)
-  
-  const activityMultipliers: Record<ActivityLevel, number> = {
-    sedentary: 1.2,
-    light: 1.375,
-    moderate: 1.55,
-    active: 1.725,
-    very_active: 1.9
-  }
-  
-  return Math.round(bmr * activityMultipliers[activityLevel])
+  return Math.round(bmr * PROFILE_CALCULATION.ACTIVITY_MULTIPLIERS[activityLevel])
 }
 
 /**
@@ -108,25 +101,15 @@ export function calculateDailyCaloriesBudget(
   goal: Goal
 ): number {
   const tdee = calculateTDEE(weight, height, activityLevel)
-  
-  const goalAdjustments: Record<Goal, number> = {
-    lose_weight: -500,  // 500 calorie deficit for weight loss (~1 lb/week)
-    maintain: 0,         // Maintain TDEE
-    gain_muscle: 300    // 300 calorie surplus for muscle gain
-  }
-  
-  return Math.max(1000, Math.round(tdee + goalAdjustments[goal]))
+  return Math.max(
+    PROFILE_CALCULATION.MIN_CALORIES_BUDGET,
+    Math.round(tdee + PROFILE_CALCULATION.GOAL_ADJUSTMENTS[goal])
+  )
 }
 
 /**
  * Calculates daily protein target in grams based on weight and goal
  */
 export function calculateProteinTarget(weight: number, goal: Goal): number {
-  const proteinMultipliers: Record<Goal, number> = {
-    lose_weight: 2.2, // Higher protein for weight loss to preserve muscle
-    maintain: 1.6,    // Moderate protein for maintenance
-    gain_muscle: 2.0  // High protein for muscle gain
-  }
-  
-  return Math.round(weight * proteinMultipliers[goal])
+  return Math.round(weight * PROFILE_CALCULATION.PROTEIN_MULTIPLIERS[goal])
 } 

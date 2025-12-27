@@ -4,6 +4,8 @@ import { createClient } from '@/utils/supabase/server'
 import { UserProfile, ProfileFormData } from '@/types/profile'
 import { AuthError, DatabaseError } from '@/lib/errors'
 import { formatErrorForLogging } from '@/lib/errors'
+import { validateInput } from '@/lib/validation'
+import { profileFormDataSchema } from '@/lib/validation-schemas'
 
 /**
  * Gets the user profile for the authenticated user
@@ -56,6 +58,8 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 export async function saveUserProfile(
   profileData: ProfileFormData,
 ): Promise<UserProfile> {
+  validateInput(profileFormDataSchema, profileData)
+  
   const supabase = await createClient()
 
   const {
