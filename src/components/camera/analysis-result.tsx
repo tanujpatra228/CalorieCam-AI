@@ -15,6 +15,7 @@ import { formatErrorForLogging } from '@/lib/errors'
 interface AnalysisResultProps {
 	result: string
 	image: string
+	cloudinaryUrl: string
 	onRetake: () => void
 	onAnalyze: () => void
 	isAnalyzing: boolean
@@ -48,6 +49,7 @@ const macrosChartConfig = {
 export function AnalysisResult({
 	result,
 	image,
+	cloudinaryUrl,
 	onRetake,
 	onAnalyze,
 	isAnalyzing
@@ -93,7 +95,7 @@ export function AnalysisResult({
 
 	const handleLogAnalysis = async () => {
 		if (!jsonResult) return
-		await logCurrentAnalysis(jsonResult, image)
+		await logCurrentAnalysis(jsonResult, cloudinaryUrl)
 	}
 
 	if (!jsonResult) {

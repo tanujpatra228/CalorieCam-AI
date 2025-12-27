@@ -81,6 +81,16 @@ export class DatabaseError extends AppError {
 }
 
 /**
+ * Cloudinary error
+ * Used for Cloudinary upload-related failures
+ */
+export class CloudinaryError extends AppError {
+  constructor(message: string = 'Failed to upload image to Cloudinary', code?: string, public readonly originalError?: unknown) {
+    super(message, code, 500)
+  }
+}
+
+/**
  * Check if an error is an instance of AppError
  */
 export function isAppError(error: unknown): error is AppError {

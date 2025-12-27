@@ -21,6 +21,7 @@ An AI-powered nutrition tracking application that analyzes food images using Goo
 - **Framework**: Next.js (App Router) with TypeScript
 - **Backend**: Supabase (PostgreSQL database, authentication)
 - **AI**: Google Generative AI (Gemini 2.0 Flash)
+- **Image Storage**: Cloudinary (compressed image storage with organized folder structure)
 - **UI Components**: Radix UI primitives
 - **Styling**: Tailwind CSS
 - **Forms**: React Hook Form with Zod validation
@@ -33,6 +34,7 @@ An AI-powered nutrition tracking application that analyzes food images using Goo
 - Node.js 18+ and npm
 - A Supabase account and project
 - A Google AI API key (Gemini)
+- A Cloudinary account (for image storage)
 
 ## Installation
 
@@ -54,6 +56,9 @@ Create a `.env.local` file in the root directory with the following variables:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 GOOGLE_AI_API_KEY=your_google_ai_api_key
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 4. Set up the database:
@@ -77,6 +82,9 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
 | `GOOGLE_AI_API_KEY` | Your Google AI API key for Gemini | Yes |
+| `CLOUDINARY_CLOUD_NAME` | Your Cloudinary cloud name | Yes |
+| `CLOUDINARY_API_KEY` | Your Cloudinary API key | Yes |
+| `CLOUDINARY_API_SECRET` | Your Cloudinary API secret | Yes |
 
 ## Database Schema
 

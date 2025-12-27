@@ -200,3 +200,10 @@ export const analyzeImageSchema = z.object({
   additionalContext: additionalContextSchema,
 })
 
+/**
+ * Upload image validation schema
+ */
+export const uploadImageSchema = z.object({
+  imageData: base64ImageSchema,
+})
+

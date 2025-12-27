@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { analyzeImage } from '@/services/ai-service'
+import { uploadImageToCloudinaryAction } from '@/app/actions/upload-image'
 import { CameraIcon, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { AnalysisResult } from './analysis-result'
@@ -14,8 +15,10 @@ export function CameraCapture() {
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [stream, setStream] = useState<MediaStream | null>(null)
 	const [capturedImage, setCapturedImage] = useState<string | null>(null)
+	const [cloudinaryUrl, setCloudinaryUrl] = useState<string | null>(null)
 	const [additionalContext, setAdditionalContext] = useState<string>('')
 	const [isAnalyzing, setIsAnalyzing] = useState(false)
+	const [isUploading, setIsUploading] = useState(false)
 	const [analysisResult, setAnalysisResult] = useState<string | null>(null)
 	const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
 	const { toast } = useToast()
@@ -49,7 +52,23 @@ export function CameraCapture() {
 		}
 	}, [stream])
 
-	const captureImage = useCallback(() => {
+	const uploadImageToCloudinary = useCallback(async (imageData: string) => {
+		setIsUploading(true)
+		try {
+			const url = await uploadImageToCloudinaryAction(imageData)
+			setCloudinaryUrl(url)
+		} catch (error) {
+			toast({
+				title: 'Error',
+				description: 'Failed to upload image. You can still analyze it, but it won\'t be saved.',
+				variant: 'destructive'
+			})
+		} finally {
+			setIsUploading(false)
+		}
+	}, [toast])
+
+	const captureImage = useCallback(async () => {
 		if (videoRef.current) {
 			const canvas = document.createElement('canvas')
 			canvas.width = videoRef.current.videoWidth
@@ -61,6 +80,7 @@ export function CameraCapture() {
 					const compressedImageData = compressImageFromCanvas(canvas)
 					setCapturedImage(compressedImageData)
 					stopCamera()
+					await uploadImageToCloudinary(compressedImageData)
 				} catch (error) {
 					toast({
 						title: 'Error',
@@ -70,7 +90,7 @@ export function CameraCapture() {
 				}
 			}
 		}
-	}, [stopCamera, toast])
+	}, [stopCamera, toast, uploadImageToCloudinary])
 
 	const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0]
@@ -88,6 +108,7 @@ export function CameraCapture() {
 				const compressedImageData = await compressImageFromFile(file)
 				setCapturedImage(compressedImageData)
 				stopCamera()
+				await uploadImageToCloudinary(compressedImageData)
 			} catch (error) {
 				toast({
 					title: 'Error',
@@ -118,6 +139,7 @@ export function CameraCapture() {
 
 	const handleRetake = () => {
 		setCapturedImage(null)
+		setCloudinaryUrl(null)
 		setAnalysisResult(null)
 		setIsFullscreen(true)
 		if (fileInputRef.current) {
@@ -131,6 +153,7 @@ export function CameraCapture() {
 			<AnalysisResult
 				result={analysisResult}
 				image={capturedImage}
+				cloudinaryUrl={cloudinaryUrl || capturedImage}
 				onRetake={handleRetake}
 				onAnalyze={handleAnalyze}
 				isAnalyzing={isAnalyzing}
@@ -200,15 +223,15 @@ export function CameraCapture() {
 						<Button
 							variant="outline"
 							onClick={handleRetake}
-							disabled={isAnalyzing}
+							disabled={isAnalyzing || isUploading}
 						>
 							Retake
 						</Button>
 						<Button
 							onClick={handleAnalyze}
-							disabled={isAnalyzing}
+							disabled={isAnalyzing || isUploading}
 						>
-							{isAnalyzing ? 'Analyzing...' : 'Analyze Image'}
+							{isAnalyzing ? 'Analyzing...' : isUploading ? 'Uploading...' : 'Analyze Image'}
 						</Button>
 					</div>
 				</div>
