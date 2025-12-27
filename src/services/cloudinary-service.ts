@@ -18,14 +18,15 @@ cloudinary.config({
 })
 
 /**
- * Uploads an image to Cloudinary
- * @param base64Data - Base64 encoded image data (with or without data URL prefix)
+ * Uploads an image to Cloudinary with incoming transformations
+ * Applies transformations during upload, so only the transformed version is stored
+ * @param file - File or Buffer to upload
  * @param userId - User ID for folder organization
- * @returns Promise that resolves to the Cloudinary secure URL
+ * @returns Promise that resolves to the Cloudinary secure URL of the compressed version
  * @throws {CloudinaryError} If upload fails
  */
 export async function uploadImage(
-  base64Data: string,
+  file: File | Buffer,
   userId: string,
 ): Promise<string> {
   // Validate Cloudinary configuration
@@ -40,28 +41,55 @@ export async function uploadImage(
   }
 
   try {
-    // Extract base64 data (remove data URL prefix if present)
-    const base64Image = base64Data.includes(',')
-      ? base64Data.split(',')[1]
-      : base64Data
-
     // Generate unique filename
     const timestamp = Date.now()
     const random = Math.random().toString(36).substring(2, 9)
     const publicId = `${timestamp}-${random}`
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(
-      `data:image/jpeg;base64,${base64Image}`,
-      {
-        folder: `caloriecam-ai/${userId}`,
-        public_id: publicId,
-        resource_type: 'image',
-        fetch_format: 'auto',
-        quality: 'auto:good',
-      },
-    )
+    // Convert File to Buffer if needed
+    let fileBuffer: Buffer
+    if (file instanceof File) {
+      const arrayBuffer = await file.arrayBuffer()
+      fileBuffer = Buffer.from(arrayBuffer)
+    } else {
+      fileBuffer = file
+    }
 
+    // Upload to Cloudinary with incoming transformations using upload_stream
+    // Incoming transformations apply during upload, so only transformed version is stored
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: `caloriecam-ai/${userId}`,
+          public_id: publicId,
+          resource_type: 'image',
+          transformation: [
+            {
+              width: 600,
+              crop: 'limit',
+              quality: 'auto:good',
+              fetch_format: 'auto',
+            },
+          ],
+          overwrite: false,
+        },
+        (error, uploadResult) => {
+          if (error) {
+            reject(error)
+          } else {
+            resolve(uploadResult)
+          }
+        },
+      )
+      uploadStream.end(fileBuffer)
+    })
+
+    if (!result) {
+      throw new CloudinaryError('Cloudinary upload succeeded but no result returned')
+    }
+
+    // With incoming transformations, result.secure_url is the transformed version
+    // The original file was never stored - only the transformed version exists
     if (!result.secure_url) {
       throw new CloudinaryError('Cloudinary upload succeeded but no URL returned')
     }

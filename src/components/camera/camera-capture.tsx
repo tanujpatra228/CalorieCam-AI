@@ -52,10 +52,35 @@ export function CameraCapture() {
 		}
 	}, [stream])
 
-	const uploadImageToCloudinary = useCallback(async (imageData: string) => {
+	/**
+	 * Converts canvas to File
+	 */
+	const canvasToFile = useCallback((canvas: HTMLCanvasElement): Promise<File> => {
+		return new Promise((resolve, reject) => {
+			canvas.toBlob(
+				(blob) => {
+					if (!blob) {
+						reject(new Error('Failed to convert canvas to blob'))
+						return
+					}
+					const timestamp = Date.now()
+					const file = new File([blob], `capture-${timestamp}.jpg`, {
+						type: 'image/jpeg',
+					})
+					resolve(file)
+				},
+				'image/jpeg',
+				0.9
+			)
+		})
+	}, [])
+
+	const uploadImageToCloudinary = useCallback(async (file: File) => {
 		setIsUploading(true)
 		try {
-			const url = await uploadImageToCloudinaryAction(imageData)
+			const formData = new FormData()
+			formData.append('file', file)
+			const url = await uploadImageToCloudinaryAction(formData)
 			setCloudinaryUrl(url)
 		} catch (error) {
 			toast({
@@ -77,20 +102,24 @@ export function CameraCapture() {
 			if (context) {
 				context.drawImage(videoRef.current, 0, 0)
 				try {
+					// Compress for AI analysis and display (base64)
 					const compressedImageData = compressImageFromCanvas(canvas)
 					setCapturedImage(compressedImageData)
 					stopCamera()
-					await uploadImageToCloudinary(compressedImageData)
+					
+					// Convert canvas to File and upload to Cloudinary
+					const file = await canvasToFile(canvas)
+					await uploadImageToCloudinary(file)
 				} catch (error) {
 					toast({
 						title: 'Error',
-						description: 'Failed to compress image',
+						description: 'Failed to process image',
 						variant: 'destructive'
 					})
 				}
 			}
 		}
-	}, [stopCamera, toast, uploadImageToCloudinary])
+	}, [stopCamera, toast, uploadImageToCloudinary, canvasToFile])
 
 	const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0]
@@ -105,10 +134,13 @@ export function CameraCapture() {
 			}
 
 			try {
+				// Compress for AI analysis and display (base64)
 				const compressedImageData = await compressImageFromFile(file)
 				setCapturedImage(compressedImageData)
 				stopCamera()
-				await uploadImageToCloudinary(compressedImageData)
+				
+				// Upload original file to Cloudinary
+				await uploadImageToCloudinary(file)
 			} catch (error) {
 				toast({
 					title: 'Error',

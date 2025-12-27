@@ -2,23 +2,19 @@
 
 import { uploadImage as uploadImageToCloudinary } from '@/services/cloudinary-service'
 import { createClient } from '@/utils/supabase/server'
-import { AuthError } from '@/lib/errors'
-import { validateInput } from '@/lib/validation'
-import { uploadImageSchema } from '@/lib/validation-schemas'
+import { AuthError, ValidationError } from '@/lib/errors'
 
 /**
  * Uploads an image to Cloudinary
- * @param imageData - Base64 encoded image data (with or without data URL prefix)
+ * @param formData - FormData containing the image file
  * @returns Promise that resolves to the Cloudinary secure URL
  * @throws {AuthError} If user is not authenticated
- * @throws {ValidationError} If image data is invalid
+ * @throws {ValidationError} If file is invalid
  * @throws {CloudinaryError} If upload fails
  */
 export async function uploadImageToCloudinaryAction(
-  imageData: string,
+  formData: FormData,
 ): Promise<string> {
-  validateInput(uploadImageSchema, { imageData })
-
   const supabase = await createClient()
 
   const {
@@ -29,6 +25,22 @@ export async function uploadImageToCloudinaryAction(
     throw new AuthError('User must be logged in to upload images')
   }
 
-  return await uploadImageToCloudinary(imageData, user.id)
+  const file = formData.get('file') as File | null
+
+  if (!file) {
+    throw new ValidationError('No file provided in FormData')
+  }
+
+  if (!file.type.startsWith('image/')) {
+    throw new ValidationError('File must be an image')
+  }
+
+  // Validate file size (e.g., max 10MB)
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+  if (file.size > MAX_FILE_SIZE) {
+    throw new ValidationError('File size exceeds maximum limit of 10MB')
+  }
+
+  return await uploadImageToCloudinary(file, user.id)
 }
 
