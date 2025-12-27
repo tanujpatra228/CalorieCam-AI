@@ -29,17 +29,16 @@ export async function logAnalysis(
     throw new AuthError('User must be logged in to log analysis')
   }
 
-  console.log('analysisData', analysisData);
-  
-
   const { data, error } = await supabase
     .from('analysis_logs')
     .insert({
       user_id: user.id,
       dish_name: analysisData.dish_name,
       total_weight_g: analysisData.total_weight_g,
-      total_digestion_time_m: analysisData.total_digestion_time_m,
-      total_calories_to_digest_kcal: analysisData.total_calories_to_digest_kcal,
+      total_digestion_time_m: Math.round(analysisData.total_digestion_time_m),
+      total_calories_to_digest_kcal: analysisData.total_calories_to_digest_kcal
+        ? Math.round(analysisData.total_calories_to_digest_kcal)
+        : null,
       image_url: imageUrl,
       macros: analysisData.macros,
       micros: analysisData.micros,
