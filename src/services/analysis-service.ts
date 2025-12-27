@@ -29,6 +29,9 @@ export async function logAnalysis(
     throw new AuthError('User must be logged in to log analysis')
   }
 
+  console.log('analysisData', analysisData);
+  
+
   const { data, error } = await supabase
     .from('analysis_logs')
     .insert({
