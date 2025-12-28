@@ -20,3 +20,12 @@ export function encodedRedirect(
 ) {
 	return redirect(`${path}?${type}=${encodeURIComponent(message)}`)
 }
+
+/**
+ * Rounds a number to 2 decimal places
+ * @param value - The number to round
+ * @returns The rounded number with at most 2 decimal places
+ */
+export function roundToTwoDecimals(value: number): number {
+	return Math.round(value * 100) / 100
+}

@@ -5,6 +5,7 @@ import { AnalysisLog } from '@/types/database'
 import { UserProfile } from '@/types/profile'
 import { AuthError, DatabaseError } from '@/lib/errors'
 import { formatErrorForLogging } from '@/lib/errors'
+import { roundToTwoDecimals } from '@/lib/utils'
 
 export interface DailyGoalData {
   date: string
@@ -87,10 +88,10 @@ export async function getDailyGoalsData(
     const date = new Date(log.created_at).toISOString().split('T')[0]
     const existing = dailyDataMap.get(date) || { calories: 0, protein: 0 }
 
-    const caloriesToAdd = log.macros.calories_kcal - (log.total_calories_to_digest_kcal || 0)
+    const caloriesToAdd = roundToTwoDecimals(log.macros.calories_kcal - (log.total_calories_to_digest_kcal || 0))
     dailyDataMap.set(date, {
-      calories: existing.calories + caloriesToAdd,
-      protein: existing.protein + log.macros.protein_g,
+      calories: roundToTwoDecimals(existing.calories + caloriesToAdd),
+      protein: roundToTwoDecimals(existing.protein + log.macros.protein_g),
     })
   })
 
@@ -102,10 +103,10 @@ export async function getDailyGoalsData(
     const dateStr = d.toISOString().split('T')[0]
     const dayData = dailyDataMap.get(dateStr) || { calories: 0, protein: 0 }
 
-    const caloriesPercentage = caloriesTarget > 0 
+    const caloriesPercentage = caloriesTarget > 0
       ? Math.min((dayData.calories / caloriesTarget) * 100, 200)
       : 0
-    const proteinPercentage = proteinTarget > 0 
+    const proteinPercentage = proteinTarget > 0
       ? Math.min((dayData.protein / proteinTarget) * 100, 200)
       : 0
 
@@ -115,8 +116,8 @@ export async function getDailyGoalsData(
 
     result.push({
       date: dateStr,
-      calories: Math.round(dayData.calories),
-      protein: Math.round(dayData.protein),
+      calories: roundToTwoDecimals(dayData.calories),
+      protein: roundToTwoDecimals(dayData.protein),
       caloriesTarget,
       proteinTarget,
       caloriesAchieved,

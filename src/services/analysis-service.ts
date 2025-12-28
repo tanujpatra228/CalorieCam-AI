@@ -9,6 +9,7 @@ import { formatErrorForLogging } from '@/lib/errors'
 import { getDateRange } from '@/utils/date-utils'
 import { validateInput } from '@/lib/validation'
 import { analysisDataSchema, getAnalysisLogsByDateSchema } from '@/lib/validation-schemas'
+import { roundToTwoDecimals } from '@/lib/utils'
 
 /**
  * Logs an analysis result to the database
@@ -23,7 +24,7 @@ export async function logAnalysis(
   imageUrl: string,
 ): Promise<AnalysisLog> {
   validateInput(analysisDataSchema, analysisData)
-  
+
   const supabase = await createClient()
 
   const {
@@ -34,19 +35,34 @@ export async function logAnalysis(
     throw new AuthError('User must be logged in to log analysis')
   }
 
+  const roundedMacros = {
+    calories_kcal: roundToTwoDecimals(analysisData.macros.calories_kcal),
+    carbs_g: roundToTwoDecimals(analysisData.macros.carbs_g),
+    protein_g: roundToTwoDecimals(analysisData.macros.protein_g),
+    fat_g: roundToTwoDecimals(analysisData.macros.fat_g),
+    sugars_g: roundToTwoDecimals(analysisData.macros.sugars_g),
+    sat_fat_g: roundToTwoDecimals(analysisData.macros.sat_fat_g),
+    fiber_g: roundToTwoDecimals(analysisData.macros.fiber_g),
+  }
+
+  const roundedMicros = {
+    sodium_mg: analysisData.micros.sodium_mg ? roundToTwoDecimals(analysisData.micros.sodium_mg) : null,
+    vitaminC_mg: analysisData.micros.vitaminC_mg ? roundToTwoDecimals(analysisData.micros.vitaminC_mg) : null,
+  }
+
   const { data, error } = await supabase
     .from('analysis_logs')
     .insert({
       user_id: user.id,
       dish_name: analysisData.dish_name,
-      total_weight_g: analysisData.total_weight_g,
+      total_weight_g: roundToTwoDecimals(analysisData.total_weight_g),
       total_digestion_time_m: Math.round(analysisData.total_digestion_time_m),
       total_calories_to_digest_kcal: analysisData.total_calories_to_digest_kcal
-        ? Math.round(analysisData.total_calories_to_digest_kcal)
+        ? roundToTwoDecimals(analysisData.total_calories_to_digest_kcal)
         : null,
       image_url: imageUrl,
-      macros: analysisData.macros,
-      micros: analysisData.micros,
+      macros: roundedMacros,
+      micros: roundedMicros,
       notes: analysisData.notes,
     })
     .select()
@@ -114,7 +130,7 @@ export async function getAnalysisLogsByDate(
   date: string,
 ): Promise<AnalysisLog[]> {
   validateInput(getAnalysisLogsByDateSchema, { date })
-  
+
   const supabase = await createClient()
 
   const {

@@ -13,10 +13,10 @@ import { ProteinTargetProgress } from '@/components/protein-budget-progress'
 import { ContributionGraph, GoalsSummary } from '@/components/goals-history'
 import { getDailyGoalsData } from '@/services/goals-history-service'
 import { DailyGoalData } from '@/services/goals-history-service'
-import { getYearRange } from '@/utils/goals-history-utils'
-import { GoalView } from '@/utils/goals-history-utils'
+import { getYearRange, type GoalView } from '@/utils/goals-history-utils'
 
 import { getAnalysisLogsByDate } from '@/services/analysis-service'
+import { roundToTwoDecimals } from '@/lib/utils'
 
 async function getAnalysisLogs(date: string) {
   return await getAnalysisLogsByDate(date)
@@ -33,9 +33,9 @@ interface DailyMacros {
 }
 
 function calculateDailyMacros(logs: AnalysisLog[]): DailyMacros {
-  return logs.reduce((acc, log) => ({
+  const result = logs.reduce((acc, log) => ({
     calories: acc.calories + log.macros.calories_kcal,
-    calories_to_digest: acc.calories_to_digest + log.total_calories_to_digest_kcal,
+    calories_to_digest: acc.calories_to_digest + (log.total_calories_to_digest_kcal || 0),
     protein: acc.protein + log.macros.protein_g,
     carbs: acc.carbs + log.macros.carbs_g,
     fat: acc.fat + (log.macros.fat_g + log.macros.sat_fat_g),
@@ -50,6 +50,16 @@ function calculateDailyMacros(logs: AnalysisLog[]): DailyMacros {
     sugars: 0,
     fiber: 0
   })
+
+  return {
+    calories: roundToTwoDecimals(result.calories),
+    calories_to_digest: roundToTwoDecimals(result.calories_to_digest),
+    protein: roundToTwoDecimals(result.protein),
+    carbs: roundToTwoDecimals(result.carbs),
+    fat: roundToTwoDecimals(result.fat),
+    sugars: roundToTwoDecimals(result.sugars),
+    fiber: roundToTwoDecimals(result.fiber)
+  }
 }
 
 export default function AnalysisHistoryPage() {
@@ -163,7 +173,7 @@ export default function AnalysisHistoryPage() {
             <CardContent className="p-4 pt-0">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <CaloriesBudgetProgress caloriesIntake={Math.round(dailyMacros.calories  - (dailyMacros?.calories_to_digest || 0))} />
+                  <CaloriesBudgetProgress caloriesIntake={Math.round(dailyMacros.calories - (dailyMacros?.calories_to_digest || 0))} />
                 </div>
                 <div className="space-y-2">
                   <ProteinTargetProgress proteinIntake={Math.round(dailyMacros.protein)} />
@@ -222,12 +232,12 @@ export default function AnalysisHistoryPage() {
                         <div>
                           <h3 className="font-semibold mb-2">Macronutrients</h3>
                           <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>Calories: {kcalToDigest ? (log.macros.calories_kcal - kcalToDigest) : log.macros.calories_kcal} kcal</div>
-                            <div>Protein: {log.macros.protein_g}g</div>
-                            <div>Carbs: {log.macros.carbs_g}g</div>
-                            <div>Fat: {(log.macros.fat_g + log.macros.sat_fat_g).toFixed(2)}g</div>
-                            <div>Sugars: {log.macros.sugars_g}g</div>
-                            <div>Fiber: {log.macros.fiber_g}g</div>
+                            <div>Calories: {kcalToDigest ? Math.round((log.macros.calories_kcal - kcalToDigest) * 100) / 100 : Math.round(log.macros.calories_kcal * 100) / 100} kcal</div>
+                            <div>Protein: {Math.round(log.macros.protein_g * 100) / 100}g</div>
+                            <div>Carbs: {Math.round(log.macros.carbs_g * 100) / 100}g</div>
+                            <div>Fat: {Math.round((log.macros.fat_g + log.macros.sat_fat_g) * 100) / 100}g</div>
+                            <div>Sugars: {Math.round(log.macros.sugars_g * 100) / 100}g</div>
+                            <div>Fiber: {Math.round(log.macros.fiber_g * 100) / 100}g</div>
                           </div>
                         </div>
                         {log.notes.length > 0 && (

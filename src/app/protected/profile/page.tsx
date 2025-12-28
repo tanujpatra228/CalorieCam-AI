@@ -12,15 +12,21 @@ import { Activity, Target, User } from 'lucide-react'
 import { AnalysisLog } from '@/types/database'
 import { format } from 'date-fns'
 import { getDateRange } from '@/utils/date-utils'
+import { roundToTwoDecimals } from '@/lib/utils'
 
 function calculateDailyMacros(logs: AnalysisLog[]): { calories: number; protein: number } {
-  return logs.reduce((acc, log) => ({
+  const result = logs.reduce((acc, log) => ({
     calories: acc.calories + log.macros.calories_kcal - (log.total_calories_to_digest_kcal || 0),
     protein: acc.protein + log.macros.protein_g,
   }), {
     calories: 0,
     protein: 0,
   })
+
+  return {
+    calories: roundToTwoDecimals(result.calories),
+    protein: roundToTwoDecimals(result.protein),
+  }
 }
 
 export default function ProfilePage() {

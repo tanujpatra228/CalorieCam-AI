@@ -11,6 +11,7 @@ import { AnalysisData } from '@/types/database'
 import { useRouter } from 'next/navigation'
 import { LogsIcon } from 'lucide-react'
 import { formatErrorForLogging } from '@/lib/errors'
+import { roundToTwoDecimals } from '@/lib/utils'
 
 interface AnalysisResultProps {
 	result: string
@@ -72,9 +73,9 @@ export function AnalysisResult({
 		if (!jsonResult) return []
 		const { macros } = jsonResult
 		return [
-			{ name: 'protein', value: macros.protein_g, fill: 'hsl(var(--protein))' },
-			{ name: 'fat', value: macros.fat_g + macros.sat_fat_g, fill: 'hsl(var(--fat))' },
-			{ name: 'carbs', value: macros.carbs_g, fill: 'hsl(var(--carbs))' }
+			{ name: 'protein', value: roundToTwoDecimals(macros.protein_g), fill: 'hsl(var(--protein))' },
+			{ name: 'fat', value: roundToTwoDecimals(macros.fat_g + macros.sat_fat_g), fill: 'hsl(var(--fat))' },
+			{ name: 'carbs', value: roundToTwoDecimals(macros.carbs_g), fill: 'hsl(var(--carbs))' }
 		]
 	}, [jsonResult])
 
@@ -82,13 +83,13 @@ export function AnalysisResult({
 		if (!jsonResult) return []
 		const { macros } = jsonResult
 		const { fat_g, sat_fat_g, ...otherMacros } = macros
-		const totalFat = fat_g + sat_fat_g
+		const totalFat = roundToTwoDecimals(fat_g + sat_fat_g)
 
 		return Object.entries({ ...otherMacros, total_fat: totalFat })
 			.filter(([key]) => key !== 'calories_kcal')
 			.map(([key, value]) => ({
 				name: key.replace('_g', '').replace(/_/g, ' '),
-				value: typeof value === 'string' ? parseFloat(value) : Number(value)
+				value: roundToTwoDecimals(typeof value === 'string' ? parseFloat(value) : Number(value))
 			}))
 			.sort((a, b) => b.value - a.value)
 	}, [jsonResult])
@@ -251,7 +252,7 @@ export function AnalysisResult({
 										offset={8}
 										className="fill-foreground"
 										fontSize={12}
-										formatter={(value: number) => `${value}g`}
+										formatter={(value: number) => `${Math.round(value * 100) / 100}g`}
 									/>
 								</Bar>
 							</BarChart>
