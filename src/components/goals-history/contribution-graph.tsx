@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,6 +39,7 @@ export function ContributionGraph({
 }: ContributionGraphProps) {
   const [view, setView] = useState<GoalView>(initialView)
   const currentYear = initialYear || new Date().getFullYear()
+  const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number } | null>(null)
 
   const handleViewChange = (newView: GoalView) => {
     setView(newView)
@@ -50,6 +51,40 @@ export function ContributionGraph({
   }
   const [hoveredDay, setHoveredDay] = useState<GridDay | null>(null)
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null)
+
+  const tooltipRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (hoverPosition && tooltipRef.current) {
+      const tooltip = tooltipRef.current
+      const tooltipRect = tooltip.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const padding = 10
+      const offset = 10
+
+      let left = hoverPosition.x + offset
+      let top = hoverPosition.y - offset
+
+      if (tooltipRect.right > viewportWidth - padding) {
+        left = hoverPosition.x - tooltipRect.width - offset
+      }
+
+      if (left < padding) {
+        left = padding
+      }
+
+      if (tooltipRect.bottom > viewportHeight - padding) {
+        top = hoverPosition.y - tooltipRect.height - offset
+      }
+
+      if (top < padding) {
+        top = padding
+      }
+
+      setTooltipPosition({ left, top })
+    }
+  }, [hoverPosition])
 
   const todayYear = new Date().getFullYear()
   const availableYears = useMemo(() => {
@@ -208,10 +243,11 @@ export function ContributionGraph({
 
           {hoveredDay && hoverPosition && (
             <div
+              ref={tooltipRef}
               className="fixed z-50 pointer-events-none"
               style={{
-                left: `${hoverPosition.x + 10}px`,
-                top: `${hoverPosition.y - 10}px`,
+                left: tooltipPosition ? `${tooltipPosition.left}px` : `${hoverPosition.x + 10}px`,
+                top: tooltipPosition ? `${tooltipPosition.top}px` : `${hoverPosition.y - 10}px`,
               }}
             >
               <div className="rounded-lg border bg-popover p-3 text-sm shadow-lg">
