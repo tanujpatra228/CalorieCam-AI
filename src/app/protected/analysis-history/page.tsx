@@ -10,6 +10,11 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { CaloriesBudgetProgress } from '@/components/calorie-budget-progress'
 import { ProteinTargetProgress } from '@/components/protein-budget-progress'
+import { ContributionGraph, GoalsSummary } from '@/components/goals-history'
+import { getDailyGoalsData } from '@/services/goals-history-service'
+import { DailyGoalData } from '@/services/goals-history-service'
+import { getYearRange } from '@/utils/goals-history-utils'
+import { GoalView } from '@/utils/goals-history-utils'
 
 import { getAnalysisLogsByDate } from '@/services/analysis-service'
 
@@ -51,6 +56,10 @@ export default function AnalysisHistoryPage() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [logs, setLogs] = useState<AnalysisLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [goalsData, setGoalsData] = useState<DailyGoalData[]>([])
+  const [isLoadingGoals, setIsLoadingGoals] = useState(true)
+  const [goalsView, setGoalsView] = useState<GoalView>('protein')
+  const [goalsYear, setGoalsYear] = useState(new Date().getFullYear())
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -68,12 +77,59 @@ export default function AnalysisHistoryPage() {
     fetchLogs()
   }, [selectedDate])
 
+  useEffect(() => {
+    const fetchGoalsData = async () => {
+      setIsLoadingGoals(true)
+      try {
+        const { startDate, endDate } = getYearRange(goalsYear)
+        const data = await getDailyGoalsData(startDate, endDate)
+        setGoalsData(data)
+      } catch (error) {
+        console.error('Error fetching goals data:', error)
+      } finally {
+        setIsLoadingGoals(false)
+      }
+    }
+
+    fetchGoalsData()
+  }, [goalsYear])
+
   const dailyMacros = calculateDailyMacros(logs)
 
   return (
-    <div className="container mx-auto py-4 px-4 max-w-2xl">
+    <div className="container mx-auto py-4 px-4 max-w-4xl">
       <div className="flex flex-col gap-4 mb-6">
         <h1 className="text-2xl font-bold">Analysis History</h1>
+      </div>
+
+      {isLoadingGoals ? (
+        <div className="text-center py-8 text-muted-foreground mb-6">Loading goals history...</div>
+      ) : goalsData.length > 0 && goalsData.some((d) => d.caloriesTarget > 0 || d.proteinTarget > 0) ? (
+        <div className="mb-6 space-y-4">
+          <ContributionGraph
+            dailyData={goalsData}
+            initialView={goalsView}
+            initialYear={goalsYear}
+            onViewChange={setGoalsView}
+            onYearChange={setGoalsYear}
+          />
+          <GoalsSummary dailyData={goalsData} view={goalsView} />
+        </div>
+      ) : (
+        <Card className="mb-6">
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground">
+              Set your daily calorie and protein targets in your profile to see your goals history.
+            </p>
+            <Button asChild className="mt-4">
+              <Link href="/protected/profile">Go to Profile</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex flex-col gap-4 mb-6">
+        <h2 className="text-xl font-semibold">Daily Log</h2>
         <DatePicker
           value={selectedDate}
           onChange={setSelectedDate}
