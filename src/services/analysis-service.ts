@@ -58,7 +58,7 @@ export async function logAnalysis(
       total_weight_g: roundToTwoDecimals(analysisData.total_weight_g),
       total_digestion_time_m: toInteger(analysisData.total_digestion_time_m),
       total_calories_to_digest_kcal: analysisData.total_calories_to_digest_kcal
-        ? roundToTwoDecimals(analysisData.total_calories_to_digest_kcal)
+        ? toInteger(analysisData.total_calories_to_digest_kcal)
         : null,
       image_url: imageUrl,
       macros: roundedMacros,

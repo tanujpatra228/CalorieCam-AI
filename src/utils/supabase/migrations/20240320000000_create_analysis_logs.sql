@@ -1,7 +1,7 @@
 -- Create analysis_logs table
 create table if not exists analysis_logs (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade,
+  id uuid not null default gen_random_uuid (),
+  user_id uuid null,
   dish_name text not null,
   total_weight_g numeric not null,
   total_digestion_time_m integer not null,
@@ -9,9 +9,12 @@ create table if not exists analysis_logs (
   macros jsonb not null,
   micros jsonb not null,
   notes text[] not null,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  created_at timestamp with time zone not null default timezone ('utc'::text, now()),
+  total_calories_to_digest_kcal integer null,
   
-  constraint fk_user foreign key (user_id) references auth.users(id)
+  constraint analysis_logs_pkey primary key (id),
+  constraint analysis_logs_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE,
+  constraint fk_user foreign KEY (user_id) references auth.users (id)
 );
 
 -- Enable Row Level Security
