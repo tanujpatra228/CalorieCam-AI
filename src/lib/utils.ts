@@ -27,5 +27,18 @@ export function encodedRedirect(
  * @returns The rounded number with at most 2 decimal places
  */
 export function roundToTwoDecimals(value: number): number {
-	return Math.round(value * 100) / 100
+	const num = Number(value)
+	if (isNaN(num)) return 0
+	return Math.round(num * 100) / 100
+}
+
+/**
+ * Converts a number to an integer by rounding to the nearest whole number
+ * @param value - The number to convert to integer
+ * @returns The integer value (rounded to nearest whole number)
+ */
+export function toInteger(value: number): number {
+	const num = Number(value)
+	if (isNaN(num)) return 0
+	return Math.round(num)
 }

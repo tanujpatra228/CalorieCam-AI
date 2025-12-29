@@ -9,7 +9,7 @@ import { formatErrorForLogging } from '@/lib/errors'
 import { getDateRange } from '@/utils/date-utils'
 import { validateInput } from '@/lib/validation'
 import { analysisDataSchema, getAnalysisLogsByDateSchema } from '@/lib/validation-schemas'
-import { roundToTwoDecimals } from '@/lib/utils'
+import { roundToTwoDecimals, toInteger } from '@/lib/utils'
 
 /**
  * Logs an analysis result to the database
@@ -56,7 +56,7 @@ export async function logAnalysis(
       user_id: user.id,
       dish_name: analysisData.dish_name,
       total_weight_g: roundToTwoDecimals(analysisData.total_weight_g),
-      total_digestion_time_m: Math.round(analysisData.total_digestion_time_m),
+      total_digestion_time_m: toInteger(analysisData.total_digestion_time_m),
       total_calories_to_digest_kcal: analysisData.total_calories_to_digest_kcal
         ? roundToTwoDecimals(analysisData.total_calories_to_digest_kcal)
         : null,
