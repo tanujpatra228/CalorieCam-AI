@@ -4,6 +4,7 @@ import { encodedRedirect } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { ROUTES, ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/lib/constants";
 import { formatErrorForLogging } from "@/lib/errors";
 import { validateFormData, sanitizeEmail } from "@/lib/validation";
@@ -43,6 +44,7 @@ export const signUpAction = async (formData: FormData) => {
       );
     }
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.VALIDATION.EMAIL_AND_PASSWORD_REQUIRED;
     return encodedRedirect("error", ROUTES.SIGN_UP, errorMessage);
   }
@@ -67,6 +69,7 @@ export const signInAction = async (formData: FormData) => {
 
     return redirect(ROUTES.PROTECTED_ANALYSIS_HISTORY);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.VALIDATION.EMAIL_AND_PASSWORD_REQUIRED;
     return encodedRedirect("error", ROUTES.SIGN_IN, errorMessage);
   }
@@ -105,6 +108,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
       SUCCESS_MESSAGES.AUTH.PASSWORD_RESET_SENT,
     );
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.VALIDATION.EMAIL_REQUIRED;
     return encodedRedirect("error", ROUTES.FORGOT_PASSWORD, errorMessage);
   }
@@ -131,6 +135,7 @@ export const resetPasswordAction = async (formData: FormData) => {
 
     return encodedRedirect("success", ROUTES.RESET_PASSWORD, SUCCESS_MESSAGES.AUTH.PASSWORD_UPDATED);
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     const errorMessage = error instanceof Error ? error.message : ERROR_MESSAGES.VALIDATION.PASSWORD_AND_CONFIRM_REQUIRED;
     return encodedRedirect("error", ROUTES.RESET_PASSWORD, errorMessage);
   }
