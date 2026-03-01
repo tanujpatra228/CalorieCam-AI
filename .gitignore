@@ -42,3 +42,8 @@ next-env.d.ts
 
 # cursor
 .cursorrules
+
+# claude code
+.claude/
+.agents/
+skills-lock.json
