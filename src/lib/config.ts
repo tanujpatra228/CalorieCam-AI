@@ -14,14 +14,6 @@ function getEnvVar(key: string, defaultValue?: string): string {
   return value as string;
 }
 
-/**
- * Get an optional environment variable
- * @param key - Environment variable key
- * @returns The environment variable value or undefined
- */
-function getOptionalEnvVar(key: string): string | undefined {
-  return process.env[key]
-}
 
 /**
  * Supported AI providers
@@ -57,13 +49,22 @@ export interface AppConfig {
  * Validated application configuration
  * All required environment variables are validated at module load time
  */
+/**
+ * Validated application configuration
+ *
+ * IMPORTANT: NEXT_PUBLIC_* env vars must use dot-notation access
+ * (e.g. process.env.NEXT_PUBLIC_SUPABASE_URL) because Next.js/webpack
+ * inlines them at build time only via static dot-notation — dynamic
+ * bracket access like process.env[key] returns undefined on the client.
+ * Server-only vars (no NEXT_PUBLIC_ prefix) can use getEnvVar() safely.
+ */
 export const config: AppConfig = {
   supabase: {
-    url: getEnvVar('NEXT_PUBLIC_SUPABASE_URL'),
-    anonKey: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
   },
   ai: {
-    provider: (getOptionalEnvVar('AI_PROVIDER') || 'google') as AIProvider,
+    provider: (process.env.AI_PROVIDER || 'google') as AIProvider,
     apiKey: getEnvVar('GOOGLE_AI_API_KEY'),
   },
   cloudinary: {
@@ -72,10 +73,10 @@ export const config: AppConfig = {
     apiSecret: getEnvVar('CLOUDINARY_API_SECRET'),
   },
   app: {
-    url: getOptionalEnvVar('NEXT_PUBLIC_APP_URL'),
-    vercelUrl: getOptionalEnvVar('VERCEL_URL'),
-    vercelEnv: getOptionalEnvVar('VERCEL_ENV'),
-    vercelProjectProductionUrl: getOptionalEnvVar('VERCEL_PROJECT_PRODUCTION_URL'),
+    url: process.env.NEXT_PUBLIC_APP_URL,
+    vercelUrl: process.env.VERCEL_URL,
+    vercelEnv: process.env.VERCEL_ENV,
+    vercelProjectProductionUrl: process.env.VERCEL_PROJECT_PRODUCTION_URL,
   },
 }
 
