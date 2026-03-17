@@ -106,7 +106,7 @@ export function compressImageFromFile(file: File): Promise<string> {
  * @param originalHeight - Original image height
  * @returns Object with optimal width and height
  */
-function calculateOptimalDimensions(
+export function calculateOptimalDimensions(
   originalWidth: number,
   originalHeight: number
 ): { width: number; height: number } {
@@ -134,7 +134,7 @@ function calculateOptimalDimensions(
  * @param base64String - Base64 encoded string
  * @returns Estimated size in bytes
  */
-function getBase64Size(base64String: string): number {
+export function getBase64Size(base64String: string): number {
   const base64Data = base64String.split(',')[1] || base64String
   const padding = (base64Data.match(/=/g) || []).length
   return (base64Data.length * 3) / 4 - padding

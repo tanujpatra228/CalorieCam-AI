@@ -40,7 +40,7 @@ export async function analyzeImage(
  * @param additionalContext - Optional additional context to include in the prompt
  * @returns The formatted prompt string
  */
-function getAnalyzePrompt(additionalContext?: string): string {
+export function getAnalyzePrompt(additionalContext?: string): string {
   return IMG_ANALYZE_PROMPT.replaceAll(
     '{{additionalContext}}',
     additionalContext || 'N/A',
