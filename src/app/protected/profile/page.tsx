@@ -13,6 +13,7 @@ import { AnalysisLog } from '@/types/database'
 import { format } from 'date-fns'
 import { getDateRange } from '@/utils/date-utils'
 import { roundToTwoDecimals } from '@/lib/utils'
+import { TOAST_TITLES, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants'
 
 function calculateDailyMacros(logs: AnalysisLog[]): { calories: number; protein: number } {
   const result = logs.reduce((acc, log) => ({
@@ -67,23 +68,26 @@ export default function ProfilePage() {
           })()
         ])
 
-        if (profileResult.error) throw profileResult.error
-        setProfile(profileResult.data)
+        if (profileResult.error) {
+          if (profileResult.error.code === 'PGRST116') {
+            setProfile(null)
+            toast({
+              title: TOAST_TITLES.NOTE,
+              description: SUCCESS_MESSAGES.PROFILE.UPDATE_TO_GET_STARTED,
+              variant: 'default'
+            })
+          } else {
+            throw profileResult.error
+          }
+        } else {
+          setProfile(profileResult.data)
+        }
         setTodayLogs(logsResult as AnalysisLog[])
       } catch (error) {
-        const errorInstance = error instanceof Error ? error : new Error('Unknown error occurred')
-        console.error('Error fetching data:', errorInstance);
-        if (errorInstance && typeof errorInstance === 'object' && 'code' in errorInstance && errorInstance.code === "PGRST116") {
-          toast({
-            title: 'Note',
-            description: 'Update your profile to get started.',
-            variant: 'default'
-          })
-          return
-        }
+        console.error('Error fetching data:', error)
         toast({
-          title: 'Error',
-          description: 'Failed to load profile. Please try again.',
+          title: TOAST_TITLES.ERROR,
+          description: ERROR_MESSAGES.AUTH.FAILED_TO_LOAD_PROFILE,
           variant: 'destructive'
         })
       } finally {
