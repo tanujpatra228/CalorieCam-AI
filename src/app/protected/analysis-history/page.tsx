@@ -6,21 +6,17 @@ import { format } from 'date-fns'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Button } from '@/components/ui/button'
 import { Camera, Utensils } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { CaloriesBudgetProgress } from '@/components/calorie-budget-progress'
 import { ProteinTargetProgress } from '@/components/protein-budget-progress'
 import { ContributionGraph, GoalsSummary } from '@/components/goals-history'
-import { getDailyGoalsData } from '@/services/goals-history-service'
-import { DailyGoalData } from '@/services/goals-history-service'
+import { getDailyGoalsData, getAnalysisLogsByDate } from '@/app/actions/analysis'
 import { getYearRange, type GoalView } from '@/utils/goals-history-utils'
-
-import { getAnalysisLogsByDate } from '@/services/analysis-service'
-import { roundToTwoDecimals } from '@/lib/utils'
-
-async function getAnalysisLogs(date: string) {
-  return await getAnalysisLogsByDate(date)
-}
+import { roundToTwoDecimals, calculateTotalFat, toInteger } from '@/lib/utils'
+import { ROUTES } from '@/lib/constants'
 
 interface DailyMacros {
   calories: number
@@ -64,45 +60,21 @@ function calculateDailyMacros(logs: AnalysisLog[]): DailyMacros {
 
 export default function AnalysisHistoryPage() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [logs, setLogs] = useState<AnalysisLog[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [goalsData, setGoalsData] = useState<DailyGoalData[]>([])
-  const [isLoadingGoals, setIsLoadingGoals] = useState(true)
   const [goalsView, setGoalsView] = useState<GoalView>('protein')
   const [goalsYear, setGoalsYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    const fetchLogs = async () => {
-      setIsLoading(true)
-      try {
-        const data = await getAnalysisLogs(selectedDate)
-        setLogs(data)
-      } catch (error) {
-        console.error('Error:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  const { data: logs = [], isLoading } = useQuery({
+    queryKey: ['analysis-logs', selectedDate],
+    queryFn: () => getAnalysisLogsByDate(selectedDate),
+  })
 
-    fetchLogs()
-  }, [selectedDate])
-
-  useEffect(() => {
-    const fetchGoalsData = async () => {
-      setIsLoadingGoals(true)
-      try {
-        const { startDate, endDate } = getYearRange(goalsYear)
-        const data = await getDailyGoalsData(startDate, endDate)
-        setGoalsData(data)
-      } catch (error) {
-        console.error('Error fetching goals data:', error)
-      } finally {
-        setIsLoadingGoals(false)
-      }
-    }
-
-    fetchGoalsData()
-  }, [goalsYear])
+  const { data: goalsData = [], isLoading: isLoadingGoals } = useQuery({
+    queryKey: ['daily-goals', goalsYear],
+    queryFn: () => {
+      const { startDate, endDate } = getYearRange(goalsYear)
+      return getDailyGoalsData(startDate, endDate)
+    },
+  })
 
   const dailyMacros = calculateDailyMacros(logs)
 
@@ -132,7 +104,7 @@ export default function AnalysisHistoryPage() {
               Set your daily calorie and protein targets in your profile to see your goals history.
             </p>
             <Button asChild className="mt-4">
-              <Link href="/protected/profile">Go to Profile</Link>
+              <Link href={ROUTES.PROTECTED_PROFILE}>Go to Profile</Link>
             </Button>
           </CardContent>
         </Card>
@@ -154,7 +126,7 @@ export default function AnalysisHistoryPage() {
           <CardContent className="flex flex-col items-center gap-4">
             <p className="text-muted-foreground">No meals logged for this date</p>
             <Button asChild>
-              <Link href="/camera" className="flex items-center gap-2">
+              <Link href={ROUTES.CAMERA} className="flex items-center gap-2">
                 <Camera className="h-4 w-4" />
                 Log a Meal
               </Link>
@@ -173,26 +145,26 @@ export default function AnalysisHistoryPage() {
             <CardContent className="p-4 pt-0">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <CaloriesBudgetProgress caloriesIntake={Math.round(dailyMacros.calories - (dailyMacros?.calories_to_digest || 0))} />
+                  <CaloriesBudgetProgress caloriesIntake={toInteger(dailyMacros.calories - dailyMacros.calories_to_digest)} />
                 </div>
                 <div className="space-y-2">
-                  <ProteinTargetProgress proteinIntake={Math.round(dailyMacros.protein)} />
+                  <ProteinTargetProgress proteinIntake={toInteger(dailyMacros.protein)} />
                 </div>
-                <div className="">
+                <div>
                   <div className="text-sm font-medium">Carbs</div>
-                  <div className="text-lg font-bold">{Math.round(dailyMacros.carbs)}g</div>
+                  <div className="text-lg font-bold">{toInteger(dailyMacros.carbs)}g</div>
                 </div>
-                <div className="">
+                <div>
                   <div className="text-sm font-medium">Fat</div>
-                  <div className="text-lg font-bold">{Math.round(dailyMacros.fat)}g</div>
+                  <div className="text-lg font-bold">{toInteger(dailyMacros.fat)}g</div>
                 </div>
-                <div className="">
+                <div>
                   <div className="text-sm font-medium">Sugars</div>
-                  <div className="text-lg font-bold">{Math.round(dailyMacros.sugars)}g</div>
+                  <div className="text-lg font-bold">{toInteger(dailyMacros.sugars)}g</div>
                 </div>
-                <div className="">
+                <div>
                   <div className="text-sm font-medium">Fiber</div>
-                  <div className="text-lg font-bold">{Math.round(dailyMacros.fiber)}g</div>
+                  <div className="text-lg font-bold">{toInteger(dailyMacros.fiber)}g</div>
                 </div>
               </div>
             </CardContent>
@@ -201,6 +173,9 @@ export default function AnalysisHistoryPage() {
           <div className="grid gap-4">
             {logs.map((log) => {
               const kcalToDigest = log?.total_calories_to_digest_kcal || null;
+              const netCalories = kcalToDigest
+                ? roundToTwoDecimals(log.macros.calories_kcal - kcalToDigest)
+                : roundToTwoDecimals(log.macros.calories_kcal)
               return (
                 <Card key={log.id} className="overflow-hidden">
                   <CardHeader className="p-4">
@@ -215,29 +190,31 @@ export default function AnalysisHistoryPage() {
                       <p>Digestion</p>
                       <div className="text-xs flex gap-2 divide-x-2">
                         <p>~{log.total_digestion_time_m} min</p>
-                        {!!kcalToDigest ? (<p className='pl-2'>~{kcalToDigest || 0} kcal</p>) : null}
+                        {kcalToDigest ? (<p className='pl-2'>~{kcalToDigest} kcal</p>) : null}
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <img
+                      <div className="relative w-full h-48">
+                        <Image
                           src={log.image_url}
                           alt={log.dish_name}
-                          className="w-full h-48 object-cover rounded-lg"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-cover rounded-lg"
                         />
                       </div>
                       <div className="space-y-4">
                         <div>
                           <h3 className="font-semibold mb-2">Macronutrients</h3>
                           <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>Calories: {kcalToDigest ? Math.round((log.macros.calories_kcal - kcalToDigest) * 100) / 100 : Math.round(log.macros.calories_kcal * 100) / 100} kcal</div>
-                            <div>Protein: {Math.round(log.macros.protein_g * 100) / 100}g</div>
-                            <div>Carbs: {Math.round(log.macros.carbs_g * 100) / 100}g</div>
-                            <div>Fat: {Math.round((log.macros.fat_g + log.macros.sat_fat_g) * 100) / 100}g</div>
-                            <div>Sugars: {Math.round(log.macros.sugars_g * 100) / 100}g</div>
-                            <div>Fiber: {Math.round(log.macros.fiber_g * 100) / 100}g</div>
+                            <div>Calories: {netCalories} kcal</div>
+                            <div>Protein: {roundToTwoDecimals(log.macros.protein_g)}g</div>
+                            <div>Carbs: {roundToTwoDecimals(log.macros.carbs_g)}g</div>
+                            <div>Fat: {calculateTotalFat(log.macros.fat_g, log.macros.sat_fat_g)}g</div>
+                            <div>Sugars: {roundToTwoDecimals(log.macros.sugars_g)}g</div>
+                            <div>Fiber: {roundToTwoDecimals(log.macros.fiber_g)}g</div>
                           </div>
                         </div>
                         {log.notes.length > 0 && (
@@ -265,4 +242,4 @@ export default function AnalysisHistoryPage() {
       )}
     </div>
   )
-} 
+}

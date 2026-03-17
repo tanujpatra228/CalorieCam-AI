@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from './ui/dropdown-menu'
+import { ROUTES } from '@/lib/constants'
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -40,7 +41,7 @@ export default async function AuthButton() {
               disabled
               className="opacity-75 cursor-none pointer-events-none"
             >
-              <Link href="/sign-in">Sign in</Link>
+              <Link href={ROUTES.SIGN_IN}>Sign in</Link>
             </Button>
             <Button
               asChild
@@ -49,7 +50,7 @@ export default async function AuthButton() {
               disabled
               className="opacity-75 cursor-none pointer-events-none"
             >
-              <Link href="/sign-up">Sign up</Link>
+              <Link href={ROUTES.SIGN_UP}>Sign up</Link>
             </Button>
           </div>
         </div>
@@ -77,10 +78,10 @@ export default async function AuthButton() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href="/protected/analysis-history">History</Link>
+              <Link href={ROUTES.PROTECTED_ANALYSIS_HISTORY}>History</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/protected/profile">Profile</Link>
+              <Link href={ROUTES.PROTECTED_PROFILE}>Profile</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

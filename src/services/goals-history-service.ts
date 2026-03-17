@@ -1,5 +1,3 @@
-'use server'
-
 import { createClient } from '@/utils/supabase/server'
 import { AnalysisLog } from '@/types/database'
 import { UserProfile } from '@/types/profile'

@@ -42,3 +42,11 @@ export function toInteger(value: number): number {
 	if (isNaN(num)) return 0
 	return Math.round(num)
 }
+
+/**
+ * Calculates total fat from fat and saturated fat values
+ * Centralizes the fat_g + sat_fat_g calculation used across the app
+ */
+export function calculateTotalFat(fatG: number, satFatG: number): number {
+	return roundToTwoDecimals(fatG + satFatG)
+}

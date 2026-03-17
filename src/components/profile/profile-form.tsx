@@ -3,8 +3,9 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { UserProfile, ProfileFormData, calculateDailyCaloriesBudget, calculateProteinTarget } from '@/types/profile'
+import { profileFormDataSchema } from '@/lib/validation-schemas'
+import { TOAST_TITLES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -26,15 +27,6 @@ import {
 import { useToast } from '@/components/ui/use-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const profileFormSchema = z.object({
-  height_cm: z.number().min(100).max(250).optional(),
-  weight_kg: z.number().min(30).max(300).optional(),
-  activity_level: z.enum(['sedentary', 'light', 'moderate', 'active', 'very_active']).optional(),
-  goal: z.enum(['lose_weight', 'maintain', 'gain_muscle']).optional(),
-  daily_calories_budget: z.number().min(1000).max(5000).optional(),
-  daily_protein_target_g: z.number().min(20).max(300).optional(),
-})
-
 interface ProfileFormProps {
   profile: UserProfile | null
   onSave: (data: ProfileFormData) => Promise<void>
@@ -43,7 +35,7 @@ interface ProfileFormProps {
 export function ProfileForm({ profile, onSave }: ProfileFormProps) {
   const { toast } = useToast()
   const form = useForm<ProfileFormData>({
-    resolver: zodResolver(profileFormSchema),
+    resolver: zodResolver(profileFormDataSchema),
     defaultValues: {
       height_cm: profile?.height_cm ?? undefined,
       weight_kg: profile?.weight_kg ?? undefined,
@@ -81,14 +73,14 @@ export function ProfileForm({ profile, onSave }: ProfileFormProps) {
     try {
       await onSave(data)
       toast({
-        title: 'Success',
-        description: 'Profile updated successfully.',
+        title: TOAST_TITLES.SUCCESS,
+        description: SUCCESS_MESSAGES.PROFILE.UPDATED,
       })
     } catch (error) {
       console.error('Error saving profile:', error)
       toast({
-        title: 'Error',
-        description: 'Failed to save profile. Please try again.',
+        title: TOAST_TITLES.ERROR,
+        description: ERROR_MESSAGES.AUTH.FAILED_TO_SAVE_PROFILE,
         variant: 'destructive',
       })
     }

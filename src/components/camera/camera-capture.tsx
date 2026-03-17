@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
-import { analyzeImage } from '@/services/ai-service'
+import { analyzeImage } from '@/app/actions/ai'
 import { uploadImageToCloudinaryAction } from '@/app/actions/upload-image'
 import { CameraIcon, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'

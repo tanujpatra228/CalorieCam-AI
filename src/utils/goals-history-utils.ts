@@ -1,5 +1,5 @@
 import { startOfYear, endOfYear, eachDayOfInterval, getWeek, getDay, format } from 'date-fns'
-import { DailyGoalData } from '@/services/goals-history-service'
+import type { DailyGoalData } from '@/services/goals-history-service'
 
 export type GoalView = 'protein' | 'calories'
 

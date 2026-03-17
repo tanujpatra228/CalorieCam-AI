@@ -102,6 +102,8 @@ export const ERROR_MESSAGES = {
     AUTHENTICATION_REQUIRED: 'Please sign in to log your analysis.',
     FAILED_TO_LOAD_PROFILE: 'Failed to load profile. Please try again.',
     FAILED_TO_SAVE_PROFILE: 'Failed to save profile. Please try again.',
+    COULD_NOT_RESET_PASSWORD: 'Could not reset password',
+    PASSWORD_UPDATE_FAILED: 'Password update failed',
   },
   ANALYSIS: {
     FAILED_TO_LOG: 'Failed to log analysis. Please try again.',

@@ -11,7 +11,8 @@ import { AnalysisData } from '@/types/database'
 import { useRouter } from 'next/navigation'
 import { LogsIcon } from 'lucide-react'
 import { formatErrorForLogging } from '@/lib/errors'
-import { roundToTwoDecimals } from '@/lib/utils'
+import { roundToTwoDecimals, calculateTotalFat } from '@/lib/utils'
+import { ROUTES } from '@/lib/constants'
 
 interface AnalysisResultProps {
 	result: string
@@ -74,7 +75,7 @@ export function AnalysisResult({
 		const { macros } = jsonResult
 		return [
 			{ name: 'protein', value: roundToTwoDecimals(macros.protein_g), fill: 'hsl(var(--protein))' },
-			{ name: 'fat', value: roundToTwoDecimals(macros.fat_g + macros.sat_fat_g), fill: 'hsl(var(--fat))' },
+			{ name: 'fat', value: calculateTotalFat(macros.fat_g, macros.sat_fat_g), fill: 'hsl(var(--fat))' },
 			{ name: 'carbs', value: roundToTwoDecimals(macros.carbs_g), fill: 'hsl(var(--carbs))' }
 		]
 	}, [jsonResult])
@@ -83,7 +84,7 @@ export function AnalysisResult({
 		if (!jsonResult) return []
 		const { macros } = jsonResult
 		const { fat_g, sat_fat_g, ...otherMacros } = macros
-		const totalFat = roundToTwoDecimals(fat_g + sat_fat_g)
+		const totalFat = calculateTotalFat(fat_g, sat_fat_g)
 
 		return Object.entries({ ...otherMacros, total_fat: totalFat })
 			.filter(([key]) => key !== 'calories_kcal')
@@ -189,15 +190,15 @@ export function AnalysisResult({
 						<CardFooter className='p-0 flex justify-between items-stretch text-xs'>
 							<span className='flex gap-1 justify-start items-center'>
 								<span className='block h-3 w-3 rounded-full bg-[hsl(var(--protein))]' />
-								Protein {(jsonResult.macros.protein_g).toFixed(2)} g
+								Protein {roundToTwoDecimals(jsonResult.macros.protein_g)} g
 							</span>
 							<span className='flex gap-1 justify-start items-center'>
 								<span className='block h-3 w-3 rounded-full bg-[hsl(var(--fat))]' />
-								Fat {(jsonResult.macros.fat_g + jsonResult.macros.sat_fat_g).toFixed(2)} g
+								Fat {calculateTotalFat(jsonResult.macros.fat_g, jsonResult.macros.sat_fat_g)} g
 							</span>
 							<span className='flex gap-1 justify-start items-center'>
 								<span className='block h-3 w-3 rounded-full bg-[hsl(var(--carbs))]' />
-								Carbs {(jsonResult.macros.carbs_g).toFixed(2)} g
+								Carbs {roundToTwoDecimals(jsonResult.macros.carbs_g)} g
 							</span>
 						</CardFooter>
 					</CardContent>
@@ -295,7 +296,7 @@ export function AnalysisResult({
 					</Button>
 				) : (
 					<Button
-						onClick={() => router.push('/sign-in')}
+						onClick={() => router.push(ROUTES.SIGN_IN)}
 						variant='secondary'
 						className='w-full flex gap-2 bg-green-800 text-white'
 					>

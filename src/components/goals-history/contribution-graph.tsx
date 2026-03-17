@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DailyGoalData } from '@/services/goals-history-service'
+import type { DailyGoalData } from '@/services/goals-history-service'
 import {
   GoalView,
   groupDaysByWeek,

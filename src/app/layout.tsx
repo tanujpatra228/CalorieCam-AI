@@ -8,8 +8,10 @@ import { Geist } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { AnalysisProvider } from '@/contexts/analysis-context'
+import { QueryProvider } from '@/providers/query-provider'
 import { createClient } from '@/utils/supabase/server'
 import { getAppUrl } from "@/lib/config";
+import { ROUTES } from "@/lib/constants";
 
 const defaultUrl = getAppUrl();
 
@@ -41,19 +43,20 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <QueryProvider>
           <AnalysisProvider isLoggedIn={!!user}>
             <main className="min-h-screen md:flex md:flex-col md:items-center">
-              <div className="">
+              <div>
                 <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                   <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                     <div className="flex gap-5 items-center font-semibold">
                       <Link href={"/"}>CalorieCam AI</Link>
                       {user && (
                         <>
-                          <Link href="/protected/analysis-history" className="text-muted-foreground hover:text-foreground hidden md:block">
+                          <Link href={ROUTES.PROTECTED_ANALYSIS_HISTORY} className="text-muted-foreground hover:text-foreground hidden md:block">
                             History
                           </Link>
-                          <Link href="/protected/profile" className="text-muted-foreground hover:text-foreground hidden md:block">
+                          <Link href={ROUTES.PROTECTED_PROFILE} className="text-muted-foreground hover:text-foreground hidden md:block">
                             Profile
                           </Link>
                         </>
@@ -74,6 +77,7 @@ export default async function RootLayout({
             </main>
             <Toaster />
           </AnalysisProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

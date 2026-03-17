@@ -1,5 +1,3 @@
-'use server'
-
 import { createClient } from '@/utils/supabase/server'
 import { UserProfile, ProfileFormData } from '@/types/profile'
 import { AuthError, DatabaseError } from '@/lib/errors'

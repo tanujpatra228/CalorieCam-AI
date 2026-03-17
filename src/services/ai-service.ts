@@ -1,5 +1,3 @@
-'use server'
-
 import { IMG_ANALYZE_PROMPT } from '@/lib/constants'
 import { AIAdapterFactory } from '@/adapters/ai-adapter.factory'
 import { AIServiceError } from '@/lib/errors'

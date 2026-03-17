@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DailyGoalData } from '@/services/goals-history-service'
+import type { DailyGoalData } from '@/services/goals-history-service'
 import { GoalView, calculateStreaks } from '@/utils/goals-history-utils'
 import { Target, TrendingUp, Award } from 'lucide-react'
 

@@ -59,23 +59,23 @@ export interface AppConfig {
  */
 export const config: AppConfig = {
   supabase: {
-    url: getEnvVar('NEXT_PUBLIC_SUPABASE_URL') || process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    anonKey: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY') || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url: getEnvVar('NEXT_PUBLIC_SUPABASE_URL'),
+    anonKey: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
   },
   ai: {
-    provider: (getOptionalEnvVar('AI_PROVIDER') || process.env.AI_PROVIDER || 'google') as AIProvider,
-    apiKey: getEnvVar('GOOGLE_AI_API_KEY') || process.env.GOOGLE_AI_API_KEY!,
+    provider: (getOptionalEnvVar('AI_PROVIDER') || 'google') as AIProvider,
+    apiKey: getEnvVar('GOOGLE_AI_API_KEY'),
   },
   cloudinary: {
-    cloudName: getEnvVar('CLOUDINARY_CLOUD_NAME') || process.env.CLOUDINARY_CLOUD_NAME || '',
-    apiKey: getEnvVar('CLOUDINARY_API_KEY') || process.env.CLOUDINARY_API_KEY || '',
-    apiSecret: getEnvVar('CLOUDINARY_API_SECRET') || process.env.CLOUDINARY_API_SECRET || '',
+    cloudName: getEnvVar('CLOUDINARY_CLOUD_NAME'),
+    apiKey: getEnvVar('CLOUDINARY_API_KEY'),
+    apiSecret: getEnvVar('CLOUDINARY_API_SECRET'),
   },
   app: {
-    url: getOptionalEnvVar('NEXT_PUBLIC_APP_URL') || process.env.NEXT_PUBLIC_APP_URL!,
-    vercelUrl: getOptionalEnvVar('VERCEL_URL') || process.env.VERCEL_URL!,
-    vercelEnv: getOptionalEnvVar('VERCEL_ENV') || process.env.VERCEL_ENV!,
-    vercelProjectProductionUrl: getOptionalEnvVar('VERCEL_PROJECT_PRODUCTION_URL') || process.env.VERCEL_PROJECT_PRODUCTION_URL!,
+    url: getOptionalEnvVar('NEXT_PUBLIC_APP_URL'),
+    vercelUrl: getOptionalEnvVar('VERCEL_URL'),
+    vercelEnv: getOptionalEnvVar('VERCEL_ENV'),
+    vercelProjectProductionUrl: getOptionalEnvVar('VERCEL_PROJECT_PRODUCTION_URL'),
   },
 }
 
