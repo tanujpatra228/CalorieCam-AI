@@ -39,13 +39,7 @@ interface ProfilePageData {
 
 async function fetchProfilePageData(): Promise<ProfilePageData> {
   const supabase = createClient()
-
-  // Debug: log Supabase config
-  console.log('[Profile Debug] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('[Profile Debug] Supabase Key (first 20):', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20))
-
   const { data: { user }, error: authError } = await supabase.auth.getUser()
-  console.log('[Profile Debug] getUser result:', { user: user?.id, email: user?.email, error: authError })
 
   if (authError || !user) {
     throw new Error('Not authenticated')
@@ -67,9 +61,6 @@ async function fetchProfilePageData(): Promise<ProfilePageData> {
       .lte('created_at', endDate.toISOString())
       .order('created_at', { ascending: false }),
   ])
-
-  console.log('[Profile Debug] Profile result:', { data: profileResult.data, error: profileResult.error })
-  console.log('[Profile Debug] Logs result:', { count: logsResult.data?.length, error: logsResult.error })
 
   if (logsResult.error) {
     throw logsResult.error

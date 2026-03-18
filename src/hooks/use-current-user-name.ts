@@ -10,7 +10,6 @@ export const useCurrentUserName = () => {
 
       // Try getUser first (validates with server), fall back to getSession (local)
       const { data: { user }, error } = await supabase.auth.getUser()
-      console.log('[Avatar Debug] getUser:', { id: user?.id, email: user?.email, error })
 
       if (!error && user) {
         setName(user.user_metadata?.full_name ?? user.email ?? '?')
@@ -19,7 +18,6 @@ export const useCurrentUserName = () => {
 
       // Fallback: read from local session
       const { data: sessionData } = await supabase.auth.getSession()
-      console.log('[Avatar Debug] getSession fallback:', { email: sessionData?.session?.user?.email })
       const session = sessionData?.session
       if (session?.user) {
         setName(
