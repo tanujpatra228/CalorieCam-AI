@@ -2,14 +2,30 @@ import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/config";
 
 export const createClient = () => {
-  // Use proxy URL in browser to bypass Indian ISP DNS blocks on *.supabase.co
-  // Server-side (SSR) falls back to the direct Supabase URL (unaffected)
-  const baseUrl = typeof window !== 'undefined'
+  const supabaseUrl = getSupabaseUrl();
+
+  // In the browser, proxy API requests through Vercel to bypass Indian ISP
+  // DNS blocks on *.supabase.co. We pass the REAL Supabase URL to
+  // createBrowserClient so cookie names match the server middleware,
+  // then intercept fetch to route requests through /supabase-proxy.
+  const isClient = typeof window !== 'undefined';
+  const proxyBaseUrl = isClient
     ? `${window.location.origin}/supabase-proxy`
-    : getSupabaseUrl();
+    : null;
 
   return createBrowserClient(
-    baseUrl,
+    supabaseUrl,
     getSupabaseAnonKey(),
+    proxyBaseUrl
+      ? {
+          global: {
+            fetch: (url: RequestInfo | URL, init?: RequestInit) => {
+              const urlStr = url.toString();
+              const proxiedUrl = urlStr.replace(supabaseUrl, proxyBaseUrl);
+              return fetch(proxiedUrl, init);
+            },
+          },
+        }
+      : undefined,
   );
 };
