@@ -6,16 +6,28 @@ export const useCurrentUserName = () => {
 
   useEffect(() => {
     const fetchProfileName = async () => {
-      const { data: { user }, error } = await createClient().auth.getUser()
-      if (error || !user) {
+      const supabase = createClient()
+
+      // Try getUser first (validates with server), fall back to getSession (local)
+      const { data: { user }, error } = await supabase.auth.getUser()
+      console.log('[Avatar Debug] getUser:', { id: user?.id, email: user?.email, error })
+
+      if (!error && user) {
+        setName(user.user_metadata?.full_name ?? user.email ?? '?')
         return
       }
 
-      setName(
-        user.user_metadata?.full_name ??
-        user.email ??
-        '?'
-      )
+      // Fallback: read from local session
+      const { data: sessionData } = await supabase.auth.getSession()
+      console.log('[Avatar Debug] getSession fallback:', { email: sessionData?.session?.user?.email })
+      const session = sessionData?.session
+      if (session?.user) {
+        setName(
+          session.user.user_metadata?.full_name ??
+          session.user.email ??
+          '?'
+        )
+      }
     }
 
     fetchProfileName()

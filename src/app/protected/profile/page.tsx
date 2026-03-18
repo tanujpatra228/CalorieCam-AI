@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/utils/supabase/client'
 import { UserProfile, ProfileFormData } from '@/types/profile'
 import { ProfileForm } from '@/components/profile/profile-form'
@@ -30,100 +31,119 @@ function calculateDailyMacros(logs: AnalysisLog[]): { calories: number; protein:
   }
 }
 
+interface ProfilePageData {
+  profile: UserProfile | null
+  todayLogs: AnalysisLog[]
+  profileNotFound: boolean
+}
+
+async function fetchProfilePageData(): Promise<ProfilePageData> {
+  const supabase = createClient()
+
+  // Debug: log Supabase config
+  console.log('[Profile Debug] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('[Profile Debug] Supabase Key (first 20):', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20))
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  console.log('[Profile Debug] getUser result:', { user: user?.id, email: user?.email, error: authError })
+
+  if (authError || !user) {
+    throw new Error('Not authenticated')
+  }
+
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const { startDate, endDate } = getDateRange(today)
+
+  const [profileResult, logsResult] = await Promise.all([
+    supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('analysis_logs')
+      .select('*')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .order('created_at', { ascending: false }),
+  ])
+
+  console.log('[Profile Debug] Profile result:', { data: profileResult.data, error: profileResult.error })
+  console.log('[Profile Debug] Logs result:', { count: logsResult.data?.length, error: logsResult.error })
+
+  if (logsResult.error) {
+    throw logsResult.error
+  }
+
+  if (profileResult.error) {
+    if (profileResult.error.code === 'PGRST116') {
+      return { profile: null, todayLogs: (logsResult.data || []) as AnalysisLog[], profileNotFound: true }
+    }
+    throw profileResult.error
+  }
+
+  return {
+    profile: profileResult.data as UserProfile,
+    todayLogs: (logsResult.data || []) as AnalysisLog[],
+    profileNotFound: false,
+  }
+}
+
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [todayLogs, setTodayLogs] = useState<AnalysisLog[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+  const queryClient = useQueryClient()
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['profile-page'],
+    queryFn: fetchProfilePageData,
+    retry: 1,
+  })
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+    if (error) {
+      toast({
+        title: TOAST_TITLES.ERROR,
+        description: ERROR_MESSAGES.AUTH.FAILED_TO_LOAD_PROFILE,
+        variant: 'destructive',
+      })
+    }
+  }, [error, toast])
 
-        if (!user) {
-          return
-        }
+  useEffect(() => {
+    if (data?.profileNotFound) {
+      toast({
+        title: TOAST_TITLES.NOTE,
+        description: SUCCESS_MESSAGES.PROFILE.UPDATE_TO_GET_STARTED,
+        variant: 'default',
+      })
+    }
+  }, [data?.profileNotFound, toast])
 
-        const [profileResult, logsResult] = await Promise.all([
-          supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single(),
-          (async () => {
-            const today = format(new Date(), 'yyyy-MM-dd')
-            const { startDate, endDate } = getDateRange(today)
+  const profile = data?.profile ?? null
+  const todayLogs = data?.todayLogs ?? []
 
-            const { data, error } = await supabase
-              .from('analysis_logs')
-              .select('*')
-              .gte('created_at', startDate.toISOString())
-              .lte('created_at', endDate.toISOString())
-              .order('created_at', { ascending: false })
+  const handleSaveProfile = async (formData: ProfileFormData) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-            if (error) throw error
-            return data || []
-          })()
-        ])
-
-        if (profileResult.error) {
-          if (profileResult.error.code === 'PGRST116') {
-            setProfile(null)
-            toast({
-              title: TOAST_TITLES.NOTE,
-              description: SUCCESS_MESSAGES.PROFILE.UPDATE_TO_GET_STARTED,
-              variant: 'default'
-            })
-          } else {
-            throw profileResult.error
-          }
-        } else {
-          setProfile(profileResult.data)
-        }
-        setTodayLogs(logsResult as AnalysisLog[])
-      } catch (error) {
-        console.error('Error fetching data:', error)
-        toast({
-          title: TOAST_TITLES.ERROR,
-          description: ERROR_MESSAGES.AUTH.FAILED_TO_LOAD_PROFILE,
-          variant: 'destructive'
-        })
-      } finally {
-        setIsLoading(false)
-      }
+    if (!user) {
+      throw new Error('Not authenticated')
     }
 
-    fetchData()
-  }, [toast])
+    const { error: saveError } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: user.id,
+        ...formData,
+        updated_at: new Date().toISOString()
+      })
 
-  const handleSaveProfile = async (data: ProfileFormData) => {
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        throw new Error('Not authenticated')
-      }
-
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          id: user.id,
-          ...data,
-          updated_at: new Date().toISOString()
-        })
-
-      if (error) {
-        throw error
-      }
-
-      setProfile(prev => prev ? { ...prev, ...data } : null)
-    } catch (error) {
-      console.error('Error saving profile:', error)
-      throw error
+    if (saveError) {
+      throw saveError
     }
+
+    await queryClient.invalidateQueries({ queryKey: ['profile-page'] })
+    await queryClient.invalidateQueries({ queryKey: ['user-profile'] })
   }
 
   if (isLoading) {
@@ -154,7 +174,6 @@ export default function ProfilePage() {
 
         <TabsContent value="summary">
           <div className="grid gap-4">
-            {/* Daily Targets */}
             <Card>
               <CardHeader className="flex flex-row items-center gap-2">
                 <Target className="h-4 w-4 text-muted-foreground" />
@@ -184,7 +203,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Body Metrics */}
             <Card>
               <CardHeader className="flex flex-row items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
@@ -208,7 +226,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Activity & Goals */}
             <Card>
               <CardHeader className="flex flex-row items-center gap-2">
                 <Activity className="h-4 w-4 text-muted-foreground" />
@@ -250,4 +267,4 @@ export default function ProfilePage() {
       </Tabs>
     </div>
   )
-} 
+}
