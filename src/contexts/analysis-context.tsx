@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useRef, useState } from 'react'
 import { AnalysisData } from '@/types/database'
 import { logAnalysis } from '@/app/actions/analysis'
 import { useToast } from '@/components/ui/use-toast'
@@ -13,6 +13,8 @@ import Link from 'next/link'
 interface AnalysisContextType {
   isLoggedIn: boolean
   isLogging: boolean
+  isLogged: boolean
+  resetLogged: () => void
   logCurrentAnalysis: (data: AnalysisData, imageUrl: string) => Promise<void>
 }
 
@@ -26,9 +28,15 @@ export function AnalysisProvider({
   isLoggedIn: boolean 
 }) {
   const [isLogging, setIsLogging] = useState(false)
+  const [isLogged, setIsLogged] = useState(false)
+  const isLoggingRef = useRef(false)
   const { toast } = useToast()
-  
+
+  const resetLogged = () => setIsLogged(false)
+
   const logCurrentAnalysis = async (data: AnalysisData, imageUrl: string) => {
+    if (isLoggingRef.current || isLogged) return
+
     if (!isLoggedIn) {
       toast({
         title: TOAST_TITLES.AUTHENTICATION_REQUIRED,
@@ -39,8 +47,10 @@ export function AnalysisProvider({
     }
 
     try {
+      isLoggingRef.current = true
       setIsLogging(true)
       await logAnalysis(data, imageUrl)
+      setIsLogged(true)
       toast({
         title: TOAST_TITLES.SUCCESS,
         description: SUCCESS_MESSAGES.ANALYSIS.LOGGED_SUCCESSFULLY,
@@ -61,15 +71,18 @@ export function AnalysisProvider({
         variant: 'destructive'
       })
     } finally {
+      isLoggingRef.current = false
       setIsLogging(false)
     }
   }
   
   return (
-    <AnalysisContext.Provider value={{ 
-      isLoggedIn, 
-      isLogging, 
-      logCurrentAnalysis 
+    <AnalysisContext.Provider value={{
+      isLoggedIn,
+      isLogging,
+      isLogged,
+      resetLogged,
+      logCurrentAnalysis
     }}>
       {children}
     </AnalysisContext.Provider>

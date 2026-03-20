@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 import { useAnalysis } from '@/contexts/analysis-context'
 import { AnalysisData } from '@/types/database'
 import { useRouter } from 'next/navigation'
-import { LogsIcon } from 'lucide-react'
+import { CheckCircle2, LogsIcon } from 'lucide-react'
 import { formatErrorForLogging } from '@/lib/errors'
 import { roundToTwoDecimals, calculateTotalFat } from '@/lib/utils'
 import { ROUTES } from '@/lib/constants'
@@ -56,7 +56,7 @@ export function AnalysisResult({
 	onAnalyze,
 	isAnalyzing
 }: AnalysisResultProps) {
-	const { isLoggedIn, isLogging, logCurrentAnalysis } = useAnalysis();
+	const { isLoggedIn, isLogging, isLogged, resetLogged, logCurrentAnalysis } = useAnalysis();
 	const router = useRouter();
 	
 	const jsonResult = useMemo(() => {
@@ -288,11 +288,15 @@ export function AnalysisResult({
 				{isLoggedIn ? (
 					<Button
 						onClick={handleLogAnalysis}
-						disabled={isAnalyzing || isLogging}
+						disabled={isAnalyzing || isLogging || isLogged}
 						variant='secondary'
-						className='w-full flex gap-2 bg-green-800 text-white'
+						className={`w-full flex gap-2 ${isLogged ? 'bg-green-600 text-white' : 'bg-green-800 text-white'}`}
 					>
-						<LogsIcon /> {isLogging ? 'Logging...' : 'Log Analysis'}
+						{isLogged ? (
+							<><CheckCircle2 /> Already Logged</>
+						) : (
+							<><LogsIcon /> {isLogging ? 'Logging...' : 'Log Analysis'}</>
+						)}
 					</Button>
 				) : (
 					<Button
@@ -309,13 +313,13 @@ export function AnalysisResult({
 			<div className="flex gap-4">
 				<Button
 					variant="outline"
-					onClick={onRetake}
+					onClick={() => { resetLogged(); onRetake() }}
 					disabled={isAnalyzing || isLogging}
 				>
 					Retake
 				</Button>
 				<Button
-					onClick={onAnalyze}
+					onClick={() => { resetLogged(); onAnalyze() }}
 					disabled={isAnalyzing || isLogging}
 				>
 					{isAnalyzing ? 'Analyzing...' : 'Analyze Again'}
